@@ -1,12 +1,15 @@
-package main
+package ahimsarest
 
 import (
+	"database/sql"
 	"encoding/json"
 	"net/http"
 
-	"github.com/NSkelsey/ahimsarest/ahimsajson"
+	"github.com/NSkelsey/ahimsarest/ahimsadb"
 	"github.com/gorilla/mux"
 )
+
+var db *sql.DB
 
 func writeJson(w http.ResponseWriter, m interface{}) {
 
@@ -23,24 +26,25 @@ func BulletinHandler(w http.ResponseWriter, request *http.Request) {
 
 	txid, _ := mux.Vars(request)["txid"]
 
-	// add DB pull to create json object.
-
-	bltn := ahimsajson.Bulletin{
-		Txid:    txid,
-		Message: "halp halp I am being repressed",
-		Board:   "ahimsa-dev",
+	bltn, err := ahimsadb.GetJsonBltn(db, txid)
+	if err == sql.ErrNoRows {
+		http.Error(w, "Bulletin does not exist", 404)
+		return
+	}
+	if err != nil {
+		http.Error(w, err.Error(), 500)
+		return
 	}
 
-	wrapWrite(bltn, w)
+	writeJson(w, bltn)
 
 }
 
-func main() {
+// returns the http handler initialized with the api's routes
+func Handler() http.Handler {
+
 	r := mux.NewRouter()
 	r.HandleFunc("/bulletin/{txid:([a-f]|[0-9]){64}}", BulletinHandler)
-	// write items funcs first
 
-	http.Handle("/", r)
-	http.ListenAndServe(":8083", nil)
-
+	return r
 }

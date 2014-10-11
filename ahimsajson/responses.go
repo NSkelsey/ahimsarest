@@ -3,17 +3,17 @@ package ahimsajson
 // Single Items
 
 // Holds all the information available about a given Bulletin
-type Bulletin struct {
-	Board        string `json:"board,omitempty"`
-	Message      string `json:"msg"`
+type JsonBltn struct {
 	Txid         string `json:"txid"`
-	Block        string `json:"blk,omitempty"`
+	Board        string `json:"board,omitempty"`
 	Author       string `json:"author"`
+	Message      string `json:"msg"`
+	Block        string `json:"blk,omitempty"`
 	BlkTimestamp uint64 `json:"blkTimestamp,omitempty"`
 }
 
 // Holds meta information about a single unique block
-type BlockHead struct {
+type JsonBlkHead struct {
 	Hash      string `json:"hash"`
 	prevHash  string `json:"prevHash"`
 	Timestamp uint64 `json:"timestamp"`
@@ -29,11 +29,9 @@ type Info struct {
 }
 
 // Holds summary information about a given board
-type BoardSum struct {
-	Name     string `json:"name"`
-	NumBltns string `json:"numBltns"`
-	// The block timestamp of when this board was started.
-	StartedAt string `json:"startedAt,omitempty"`
-	// The block timestamp of the latest post.
-	LastActive string `json:"lastPost,omitempty"`
+type BoardSummary struct {
+	Name       string `json:"name"`
+	NumBltns   string `json:"numBltns"`
+	StartedAt  string `json:"startedAt,omitempty"` // The block timestamp of when this board was started.
+	LastActive string `json:"lastPost,omitempty"`  // The block timestamp of the latest post.
 }
