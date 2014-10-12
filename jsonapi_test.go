@@ -26,7 +26,7 @@ var cmdtests = []struct {
 		nil,
 		404,
 	},
-	{"/bulletin/3b3415ca2ffc35dcc191acca037bed1defb0cf4df19555320502766c05041a62",
+	{"/bulletin/f7800712c20377c2d29680c1aecf2331d6f80f5a44510d30ceb2e30fd5dafdcf",
 		nil,
 		200,
 	},

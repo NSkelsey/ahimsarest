@@ -11,7 +11,7 @@ var (
 	// Used by GetJsonBltn
 	selectTxid    *sql.Stmt
 	selectTxidSql string = `
-		SELECT topic, author, message, block, blocks.timestamp 
+		SELECT author, board, message, bulletins.timestamp, block, blocks.timestamp 
 		FROM bulletins LEFT JOIN blocks ON bulletins.block = blocks.hash
 		WHERE txid = $1;
 	`
@@ -56,25 +56,32 @@ func GetJsonBltn(db *sql.DB, txid string) (*ahimsajson.JsonBltn, error) {
 
 	var author, msg string
 	var board, blockH sql.NullString
-	var blkTs sql.NullInt64
+	var blkTs, bltnTs sql.NullInt64
 
 	row := selectTxid.QueryRow(txid)
-	err := row.Scan(&board, &author, &msg, &blockH, &blkTs)
+	err := row.Scan(&author, &board, &msg, &bltnTs, &blockH, &blkTs)
 	if err != nil {
 		return nil, err
 	}
 
 	bltn := &ahimsajson.JsonBltn{
 		Txid:    txid,
-		Board:   board.String,
 		Author:  author,
 		Message: msg,
+	}
+
+	if bltnTs.Valid {
+		bltn.Timestamp = bltnTs.Int64
+	}
+
+	if board.Valid {
+		bltn.Board = board.String
 	}
 
 	// If the response contained a block, fill the optional params
 	if blockH.Valid {
 		bltn.Block = blockH.String
-		bltn.BlkTimestamp = uint64(blkTs.Int64)
+		bltn.BlkTimestamp = blkTs.Int64
 	}
 	return bltn, nil
 }

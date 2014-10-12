@@ -8,24 +8,25 @@ type JsonBltn struct {
 	Board        string `json:"board,omitempty"`
 	Author       string `json:"author"`
 	Message      string `json:"msg"`
+	Timestamp    int64  `json:"timestamp,omitempty"`
 	Block        string `json:"blk,omitempty"`
-	BlkTimestamp uint64 `json:"blkTimestamp,omitempty"`
+	BlkTimestamp int64  `json:"blkTimestamp,omitempty"`
 }
 
 // Holds meta information about a single unique block
 type JsonBlkHead struct {
 	Hash      string `json:"hash"`
 	prevHash  string `json:"prevHash"`
-	Timestamp uint64 `json:"timestamp"`
+	Timestamp int64  `json:"timestamp"`
 	Height    uint64 `json:"height"`
 	NumBltns  uint64 `json:"numBltns"`
 }
 
 // Holds meta information about the server
 type Info struct {
-	Uptime    uint64 `json:"uptime"`
+	Uptime    int64  `json:"uptime"`
 	Version   string `json:"version"`
-	LatestBlk uint64 `json:"latestblock"`
+	LatestBlk int64  `json:"latestblock"`
 }
 
 // Holds summary information about a given board
