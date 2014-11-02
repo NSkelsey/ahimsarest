@@ -13,7 +13,7 @@ var db *sql.DB
 
 func main() {
 
-	dbpath := "/home/ubuntu/.ahimsa/pubrecord.db"
+	dbpath := "/home/ubuntu/gocode/src/github.com/NSkelsey/ahimsarest/test.db"
 
 	var err error
 	db, err = ahimsadb.LoadDb(dbpath)
@@ -23,7 +23,14 @@ func main() {
 	// write items funcs first
 
 	http.Handle("/", ahimsarest.Handler())
-	log.Println("listening")
-	http.ListenAndServe(":1054", nil)
+	host := "0.0.0.0:1054"
+	log.Printf("ahimsarest listening at %s.\n", host)
+	Dog()
+	http.ListenAndServe(host, nil)
 
+}
+
+func Dog() {
+
+	log.Println("wooof")
 }
