@@ -61,12 +61,21 @@ func TestWholeBoard(t *testing.T) {
 		t.Fatalf("Wrong values:\n [%s]\n", wholeBoard)
 	}
 
-	expLA := int64(1414624430)
+	expLA := int64(1414193281)
 	if wholeBoard.Summary.LastActive != expLA {
 		t.Fatalf(
 			"Wrong last active time in:\n[%s]\nWanted an LA of: %d\n\tGot: %d",
 			wholeBoard.Summary,
 			expLA,
+			wholeBoard.Summary.LastActive,
+		)
+	}
+
+	expCA := int64(1414017952)
+	if wholeBoard.Summary.CreatedAt != expCA {
+		t.Fatalf(
+			"Wrong created at time.\nWanted a CA of: %d\n\tGot %d",
+			expCA,
 			wholeBoard.Summary.LastActive,
 		)
 	}

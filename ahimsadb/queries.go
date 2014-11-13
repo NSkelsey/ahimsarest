@@ -60,8 +60,13 @@ var (
 	// Used by GetWholeBoard
 	selectBoardSum    *sql.Stmt
 	selectBoardSumSql string = `
-		SELECT board, count(*), max(bulletins.timestamp), blocks.timestamp, author 
-		FROM bulletins LEFT JOIN blocks ON bulletins.block = blocks.hash
+		SELECT board, count(*), last_bltn.bltn_ts, first_bltn.blk_ts, author 
+		FROM bulletins, 
+			(SELECT max(bulletins.timestamp) AS bltn_ts FROM bulletins WHERE board = $1) AS last_bltn,
+			(SELECT min(blocks.timestamp)  blk_ts FROM bulletins JOIN blocks on bulletins.block = blocks.hash
+				WHERE board = $1	
+			) AS first_bltn
+		LEFT JOIN blocks ON bulletins.block = blocks.hash
 		WHERE board = $1
 		ORDER BY bulletins.timestamp ASC
 		LIMIT 1
@@ -85,6 +90,29 @@ var (
 		ORDER BY blocks.timestamp ASC
 	`
 
+	// Used by GetRecentBltns
+	selectRecentConf    *sql.Stmt
+	selectRecentConfSql string = `
+		SELECT bulletins.txid, author, board, message, bulletins.timestamp, block, blocks.timestamp, blacklist.reason
+		FROM bulletins, (
+			SELECT max(blocks.height) AS height FROM blocks	
+		) AS tip		
+		JOIN blocks ON bulletins.block = blocks.hash
+		LEFT JOIN blacklist ON bulletins.txid = blacklist.txid
+		WHERE blocks.height > (tip.height - $1)
+		ORDER BY blocks.timestamp DESC
+	`
+
+	// Used by GetUnconfirmed
+	selectUnconfirmed    *sql.Stmt
+	selectUnconfirmedSql string = `
+		SELECT bulletins.txid, author, board, message, bulletins.timestamp, NULL, NULL, blacklist.reason
+		FROM bulletins
+		LEFT JOIN blacklist ON bulletins.txid = blacklist.txid
+		WHERE block IS NULL
+		ORDER BY bulletins.timestamp
+	`
+
 	sqlStmts = map[string]**sql.Stmt{
 		selectTxidSql:        &selectTxid,
 		selectBlockHeadSql:   &selectBlockHead,
@@ -95,6 +123,8 @@ var (
 		selectBoardSumSql:    &selectBoardSum,
 		selectBoardBltnsSql:  &selectBoardBltns,
 		selectAllBoardsSql:   &selectAllBoards,
+		selectRecentConfSql:  &selectRecentConf,
+		selectUnconfirmedSql: &selectUnconfirmed,
 	}
 )
 
@@ -308,9 +338,36 @@ func GetAllBoards(db *sql.DB) ([]*ahimsajson.BoardSummary, error) {
 	return boards, nil
 }
 
-func GetRecentBltns(db *sql.DB, num int) ([]*ahimsajson.JsonBltn, error) {
+// Returns the last num of confirmed bulletins in the order they were mined
+func GetRecentConf(db *sql.DB, num int) ([]*ahimsajson.JsonBltn, error) {
 
-	bltns := make([]*ahimsajson.JsonBltn, 0, num)
+	empt := make([]*ahimsajson.JsonBltn, 0, num)
+
+	rows, err := selectRecentConf.Query(num)
+	if err != nil {
+		return empt, err
+	}
+
+	bltns, err := getRelevantBltns(rows)
+	if err != nil {
+		return empt, err
+	}
+
+	return bltns, nil
+}
+
+func GetUnconfirmed(db *sql.DB) ([]*ahimsajson.JsonBltn, error) {
+	empt := []*ahimsajson.JsonBltn{}
+
+	rows, err := selectUnconfirmed.Query()
+	if err != nil {
+		return empt, err
+	}
+
+	bltns, err := getRelevantBltns(rows)
+	if err != nil {
+		return empt, err
+	}
 
 	return bltns, nil
 }

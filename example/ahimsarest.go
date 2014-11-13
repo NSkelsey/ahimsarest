@@ -20,17 +20,10 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	// write items funcs first
 
 	http.Handle("/", ahimsarest.Handler())
 	host := "0.0.0.0:1054"
 	log.Printf("ahimsarest listening at %s.\n", host)
-	Dog()
 	http.ListenAndServe(host, nil)
 
-}
-
-func Dog() {
-
-	log.Println("wooof")
 }

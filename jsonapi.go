@@ -137,12 +137,10 @@ func AllBoardsHandler(w http.ResponseWriter, request *http.Request) {
 	writeJson(w, boards)
 }
 
-// Returns the 5 most recently confirmed bulletins, if there are more than 5, 5 are
-// selected randomly and returned.
+// Returns all of the bulletins seen within the last 6 blocks.
 func RecentHandler(w http.ResponseWriter, request *http.Request) {
 
-	// TODO implement dbFunc!! And Testcases!
-	bltns, err := ahimsadb.GetRecentBltns(db, 5)
+	bltns, err := ahimsadb.GetRecentConf(db, 6)
 	if err != nil {
 		http.Error(w, err.Error(), 500)
 	}
@@ -153,11 +151,27 @@ func RecentHandler(w http.ResponseWriter, request *http.Request) {
 // Returns all of the unconfirmed bulletins ordered by reported time.
 func UnconfirmedHandler(w http.ResponseWriter, request *http.Request) {
 
+	bltns, err := ahimsadb.GetUnconfirmed(db)
+	if err != nil {
+		http.Error(w, err.Error(), 500)
+	}
+
+	writeJson(w, bltns)
 }
 
 // Returns all of the block summaries for a given day.
 func BlockDayHandler(w http.ResponseWriter, request *http.Request) {
 
+	// TODO write testcases
+	day := int(mux.Vars.request["day"])
+	month := int(mux.Vars.request["month"])
+	year := int(mux.Vars.request["year"])
+
+	logger.Println(day, month, year)
+
+	// TODO test + convert into UTC then do lookups withinin range
+
+	//writeJson(w, blocks)
 }
 
 // returns the http handler initialized with the api's routes
@@ -171,7 +185,7 @@ func Handler() http.Handler {
 	boardre := ".{1,90}"
 
 	// A single day follows this format: DD-MM-YY
-	dayre := "[0-9]{2}-[0-9]{2}-[0-9]{4}"
+	dayre := "{day:[0-9]{2}}-{month:[0-9]{2}}-{year:[0-9]{4}}"
 
 	// Item handlers
 	r.HandleFunc(fmt.Sprintf("/bulletin/{txid:%s}", sha2re), BulletinHandler)
@@ -185,7 +199,7 @@ func Handler() http.Handler {
 	r.HandleFunc("/boards", AllBoardsHandler)
 	r.HandleFunc("/recent", RecentHandler)
 	r.HandleFunc("/unconfirmed", UnconfirmedHandler)
-	r.HandleFunc(fmt.Sprintf("/blocks/{day:%s}", dayre), BlockDayHandler)
+	r.HandleFunc(fmt.Sprintf("/blocks/%s", dayre), BlockDayHandler)
 
 	return r
 }
