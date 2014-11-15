@@ -7,13 +7,10 @@ import (
 
 func TestJsonBlock(t *testing.T) {
 
-	db, err := SetupTestDB()
-	if err != nil {
-		t.Fatal(err)
-	}
+	db, _ := SetupTestDB()
 
 	h := "00000000777213b4fd7c5d5a71b9b52608356c4194203b1b63d1bb0e6141d17d"
-	jsonBlkResp, err := GetJsonBlock(db, h)
+	jsonBlkResp, err := db.GetJsonBlock(h)
 
 	if err != nil {
 		t.Fatal(err)
@@ -27,14 +24,11 @@ func TestJsonBlock(t *testing.T) {
 }
 
 func TestJsonAuthor(t *testing.T) {
-	db, err := SetupTestDB()
-	if err != nil {
-		t.Fatal(err)
-	}
+	db, _ := SetupTestDB()
 
 	author := "miUDcP8obUKPhqkrBrQz57sbSg2Mz1kZXH"
 
-	jsonResp, err := GetJsonAuthor(db, author)
+	jsonResp, err := db.GetJsonAuthor(author)
 
 	if err != nil {
 		t.Fatal(err)
@@ -47,14 +41,11 @@ func TestJsonAuthor(t *testing.T) {
 }
 
 func TestWholeBoard(t *testing.T) {
-	db, err := SetupTestDB()
-	if err != nil {
-		t.Fatal(err)
-	}
+	db, _ := SetupTestDB()
 
 	board := "ahimsa-dev"
 
-	wholeBoard, err := GetWholeBoard(db, board)
+	wholeBoard, err := db.GetWholeBoard(board)
 
 	if err != nil {
 		t.Fatal(err)
@@ -86,12 +77,9 @@ func TestWholeBoard(t *testing.T) {
 }
 
 func TestAllBoards(t *testing.T) {
-	db, err := SetupTestDB()
-	if err != nil {
-		t.Fatal(err)
-	}
+	db, _ := SetupTestDB()
 
-	allBoards, err := GetAllBoards(db)
+	allBoards, err := db.GetAllBoards()
 
 	if err != nil {
 		t.Fatal(err)
@@ -104,12 +92,11 @@ func TestAllBoards(t *testing.T) {
 }
 
 func TestBlockDay(t *testing.T) {
-
-	SetupTestDB()
+	db, _ := SetupTestDB()
 
 	target := time.Date(2014, time.November, 1, 0, 0, 0, 0, time.UTC)
 
-	blks, err := GetBlocksByDay(target)
+	blks, err := db.GetBlocksByDay(target)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -120,9 +107,9 @@ func TestBlockDay(t *testing.T) {
 }
 
 func TestLatestDB(t *testing.T) {
-	SetupTestDB()
+	db, _ := SetupTestDB()
 
-	lastBlk, lastBltn, err := LatestBlkAndBltn()
+	lastBlk, lastBltn, err := db.LatestBlkAndBltn()
 	if err != nil {
 		t.Fatal(err)
 	}

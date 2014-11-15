@@ -14,7 +14,6 @@ var (
 	ErrBltnCensored error = errors.New("Bulletin is withheld for some reason")
 
 	// Used by GetJsonBltn
-	selectTxid    *sql.Stmt
 	selectTxidSql string = `
 		SELECT bulletins.txid, author, board, message, bulletins.timestamp, block, blocks.timestamp, blacklist.reason
 		FROM bulletins LEFT JOIN blocks ON bulletins.block = blocks.hash
@@ -22,13 +21,11 @@ var (
 		WHERE bulletins.txid = $1
 	`
 	// Used by GetJsonBlock
-	selectBlockHead    *sql.Stmt
 	selectBlockHeadSql string = `
 		SELECT hash, prevhash, height, blocks.timestamp, count(bulletins.txid) 
 		FROM blocks JOIN bulletins on blocks.hash = bulletins.block
 		WHERE blocks.hash = $1
 	`
-	selectBlockBltns    *sql.Stmt
 	selectBlockBltnsSql string = `
 		SELECT bulletins.txid, author, board, message, bulletins.timestamp, block, blocks.timestamp, blacklist.reason
 		FROM bulletins LEFT JOIN blocks ON bulletins.block = blocks.hash
@@ -37,7 +34,6 @@ var (
 	`
 
 	// Used by GetJsonAuthor
-	selectAuthor    *sql.Stmt
 	selectAuthorSql string = `
 		SELECT author, count(*), blocks.timestamp
 		FROM bulletins LEFT JOIN blocks on bulletins.block = blocks.hash
@@ -45,7 +41,7 @@ var (
 		ORDER BY blocks.timestamp ASC
 	`
 
-	selectAuthorBltns    *sql.Stmt
+	// Used by GetJsonAuthor
 	selectAuthorBltnsSql string = `
 		SELECT bulletins.txid, author, board, message, bulletins.timestamp, block, blocks.timestamp, blacklist.reason
 		FROM bulletins LEFT JOIN blocks ON bulletins.block = blocks.hash
@@ -54,13 +50,11 @@ var (
 	`
 
 	// Used by GetJsonBlacklist
-	selectBlacklist    *sql.Stmt
 	selectBlacklistSql string = `
 		SELECT txid, reason from blacklist
 	`
 
 	// Used by GetWholeBoard
-	selectBoardSum    *sql.Stmt
 	selectBoardSumSql string = `
 		SELECT board, count(*), last_bltn.bltn_ts, first_bltn.blk_ts, author 
 		FROM bulletins, 
@@ -74,7 +68,7 @@ var (
 		LIMIT 1
 	`
 
-	selectBoardBltns    *sql.Stmt
+	// Used by GetWholeBoard
 	selectBoardBltnsSql string = `
 		SELECT bulletins.txid, author, board, message, bulletins.timestamp, block, blocks.timestamp, blacklist.reason
 		FROM bulletins LEFT JOIN blocks ON bulletins.block = blocks.hash
@@ -84,7 +78,6 @@ var (
 	`
 
 	// Used by GetAllBoards
-	selectAllBoards    *sql.Stmt
 	selectAllBoardsSql string = `
 		SELECT board, count(*), max(bulletins.timestamp), blocks.timestamp, author
 		FROM bulletins LEFT JOIN blocks ON bulletins.block = blocks.hash
@@ -93,7 +86,6 @@ var (
 	`
 
 	// Used by GetRecentBltns
-	selectRecentConf    *sql.Stmt
 	selectRecentConfSql string = `
 		SELECT bulletins.txid, author, board, message, bulletins.timestamp, block, blocks.timestamp, blacklist.reason
 		FROM bulletins, (
@@ -106,7 +98,6 @@ var (
 	`
 
 	// Used by GetUnconfirmed
-	selectUnconfirmed    *sql.Stmt
 	selectUnconfirmedSql string = `
 		SELECT bulletins.txid, author, board, message, bulletins.timestamp, NULL, NULL, blacklist.reason
 		FROM bulletins
@@ -116,7 +107,6 @@ var (
 	`
 
 	// Used by GetBlocksByDay
-	selectBlksByDay    *sql.Stmt
 	selectBlksByDaySql string = `
 		SELECT hash, prevhash, height, blocks.timestamp, count(bulletins.txid) 
 		FROM blocks LEFT JOIN bulletins ON bulletins.block = blocks.hash
@@ -126,74 +116,42 @@ var (
 	`
 
 	// Used by LatestBlkAndBltn
-	selectDBStatus    *sql.Stmt
 	selectDBStatusSql string = `
 		SELECT l_blk.timestamp, l_bltn.timestamp
 		FROM (SELECT max(blocks.timestamp) AS timestamp FROM blocks) as l_blk,
 			 (SELECT max(bulletins.timestamp) AS timestamp FROM bulletins) as l_bltn
 	`
-
-	// This is a map that compiles all of the sql statements before runtime.
-	// This is a premature optimization.
-	sqlStmts = map[string]**sql.Stmt{
-		selectTxidSql:        &selectTxid,
-		selectBlockHeadSql:   &selectBlockHead,
-		selectBlockBltnsSql:  &selectBlockBltns,
-		selectAuthorSql:      &selectAuthor,
-		selectAuthorBltnsSql: &selectAuthorBltns,
-		selectBlacklistSql:   &selectBlacklist,
-		selectBoardSumSql:    &selectBoardSum,
-		selectBoardBltnsSql:  &selectBoardBltns,
-		selectAllBoardsSql:   &selectAllBoards,
-		selectRecentConfSql:  &selectRecentConf,
-		selectUnconfirmedSql: &selectUnconfirmed,
-		selectBlksByDaySql:   &selectBlksByDay,
-		selectDBStatusSql:    &selectDBStatus,
-	}
 )
 
-// Prepares all of the selects for maximal speediness note that all of the queries
-// must be within the sqlStmts map for initialization.
-func prepareQueries(db *sql.DB) error {
+// The overarching struct that contains everything needed for a connection to a
+// sqlite db containing the public record
+type PublicRecord struct {
+	conn *sql.DB
 
-	for sqlString, sqlStmt := range sqlStmts {
-		upStmt, err := db.Prepare(sqlString)
-		if err != nil {
-			return err
-		}
-		(*sqlStmt) = upStmt
-	}
-	return nil
-}
-
-// Loads a sqlite db, checks if its reachabale and prepares all the queries.
-func LoadDb(dbpath string) (*sql.DB, error) {
-	db, err := sql.Open("sqlite3", dbpath)
-	if err != nil {
-		return nil, err
-	}
-
-	err = db.Ping()
-	if err != nil {
-		return nil, err
-	}
-
-	err = prepareQueries(db)
-	if err != nil {
-		return nil, err
-	}
-
-	return db, nil
+	// Precompiled SQL statements
+	selectTxid        *sql.Stmt
+	selectBlockHead   *sql.Stmt
+	selectBlockBltns  *sql.Stmt
+	selectAuthor      *sql.Stmt
+	selectAuthorBltns *sql.Stmt
+	selectBlacklist   *sql.Stmt
+	selectBoardSum    *sql.Stmt
+	selectBoardBltns  *sql.Stmt
+	selectAllBoards   *sql.Stmt
+	selectRecentConf  *sql.Stmt
+	selectUnconfirmed *sql.Stmt
+	selectBlksByDay   *sql.Stmt
+	selectDBStatus    *sql.Stmt
 }
 
 // Returns information about a single author
-func GetJsonAuthor(db *sql.DB, address string) (*ahimsajson.AuthorResp, error) {
+func (db *PublicRecord) GetJsonAuthor(address string) (*ahimsajson.AuthorResp, error) {
 
 	var numBltns uint64
 	var addrstr sql.NullString
 	var firstBlockTs sql.NullInt64
 
-	row := selectAuthor.QueryRow(address)
+	row := db.selectAuthor.QueryRow(address)
 	err := row.Scan(&addrstr, &numBltns, &firstBlockTs)
 	if err != nil {
 		return nil, err
@@ -214,7 +172,7 @@ func GetJsonAuthor(db *sql.DB, address string) (*ahimsajson.AuthorResp, error) {
 		authorSum.FirstBlkTs = firstBlockTs.Int64
 	}
 
-	rows, err := selectAuthorBltns.Query(address)
+	rows, err := db.selectAuthorBltns.Query(address)
 	defer rows.Close()
 	if err != nil {
 		return nil, err
@@ -234,23 +192,23 @@ func GetJsonAuthor(db *sql.DB, address string) (*ahimsajson.AuthorResp, error) {
 
 // Returns the single bulletin in json format, that is identified by txid.
 // If the bltn does not exist GetJsonBltn returns sql.ErrNoRows.
-func GetJsonBltn(db *sql.DB, txid string) (*ahimsajson.JsonBltn, error) {
-	row := selectTxid.QueryRow(txid)
+func (db *PublicRecord) GetJsonBltn(txid string) (*ahimsajson.JsonBltn, error) {
+	row := db.selectTxid.QueryRow(txid)
 	// If the bulletin is banned withold the bulletin
 	withhold := true
 	return scanJsonBltn(row, withhold)
 }
 
 // Returns the block head
-func GetJsonBlock(db *sql.DB, h string) (*ahimsajson.JsonBlkResp, error) {
+func (db *PublicRecord) GetJsonBlock(h string) (*ahimsajson.JsonBlkResp, error) {
 
-	row := selectBlockHead.QueryRow(h)
+	row := db.selectBlockHead.QueryRow(h)
 	blkHead, err := scanJsonBlk(row)
 	if err != nil {
 		return nil, err
 	}
 
-	rows, err := selectBlockBltns.Query(h)
+	rows, err := db.selectBlockBltns.Query(h)
 	defer rows.Close()
 	if err != nil {
 		return nil, err
@@ -268,11 +226,11 @@ func GetJsonBlock(db *sql.DB, h string) (*ahimsajson.JsonBlkResp, error) {
 	return blkResp, nil
 }
 
-func GetJsonBlacklist(db *sql.DB) ([]*ahimsajson.BannedBltn, error) {
+func (db *PublicRecord) GetJsonBlacklist() ([]*ahimsajson.BannedBltn, error) {
 
 	blacklist := []*ahimsajson.BannedBltn{}
 	empt := []*ahimsajson.BannedBltn{}
-	rows, err := selectBlacklist.Query()
+	rows, err := db.selectBlacklist.Query()
 	defer rows.Close()
 	if err != nil {
 		return empt, err
@@ -295,7 +253,7 @@ func GetJsonBlacklist(db *sql.DB) ([]*ahimsajson.BannedBltn, error) {
 
 // Returns a board summary and the bulletins posted to that board. This works on
 // the null board as well!
-func GetWholeBoard(db *sql.DB, boardstr string) (*ahimsajson.WholeBoard, error) {
+func (db *PublicRecord) GetWholeBoard(boardstr string) (*ahimsajson.WholeBoard, error) {
 
 	// Unescape boardstr and consider the string utf-8. After this unescape we
 	// must use unescapedboard because that *IS* the value stored in the DB.
@@ -304,14 +262,14 @@ func GetWholeBoard(db *sql.DB, boardstr string) (*ahimsajson.WholeBoard, error) 
 		return nil, err
 	}
 
-	row := selectBoardSum.QueryRow(unescapedboard)
+	row := db.selectBoardSum.QueryRow(unescapedboard)
 
 	boardSum, err := scanBoardSummary(row)
 	if err != nil {
 		return nil, err
 	}
 
-	rows, err := selectBoardBltns.Query(unescapedboard)
+	rows, err := db.selectBoardBltns.Query(unescapedboard)
 	defer rows.Close()
 	if err != nil {
 		return nil, err
@@ -331,10 +289,10 @@ func GetWholeBoard(db *sql.DB, boardstr string) (*ahimsajson.WholeBoard, error) 
 }
 
 // Returns a board summary for every board in the database.
-func GetAllBoards(db *sql.DB) ([]*ahimsajson.BoardSummary, error) {
+func (db *PublicRecord) GetAllBoards() ([]*ahimsajson.BoardSummary, error) {
 	boards := []*ahimsajson.BoardSummary{}
 
-	rows, err := selectAllBoards.Query()
+	rows, err := db.selectAllBoards.Query()
 	if err != nil {
 		return nil, err
 	}
@@ -351,11 +309,11 @@ func GetAllBoards(db *sql.DB) ([]*ahimsajson.BoardSummary, error) {
 }
 
 // Returns the last num of confirmed bulletins in the order they were mined
-func GetRecentConf(db *sql.DB, num int) ([]*ahimsajson.JsonBltn, error) {
+func (db *PublicRecord) GetRecentConf(num int) ([]*ahimsajson.JsonBltn, error) {
 
 	empt := make([]*ahimsajson.JsonBltn, 0, num)
 
-	rows, err := selectRecentConf.Query(num)
+	rows, err := db.selectRecentConf.Query(num)
 	if err != nil {
 		return empt, err
 	}
@@ -368,10 +326,10 @@ func GetRecentConf(db *sql.DB, num int) ([]*ahimsajson.JsonBltn, error) {
 	return bltns, nil
 }
 
-func GetUnconfirmed(db *sql.DB) ([]*ahimsajson.JsonBltn, error) {
+func (db *PublicRecord) GetUnconfirmed() ([]*ahimsajson.JsonBltn, error) {
 	empt := []*ahimsajson.JsonBltn{}
 
-	rows, err := selectUnconfirmed.Query()
+	rows, err := db.selectUnconfirmed.Query()
 	if err != nil {
 		return empt, err
 	}
@@ -384,13 +342,13 @@ func GetUnconfirmed(db *sql.DB) ([]*ahimsajson.JsonBltn, error) {
 	return bltns, nil
 }
 
-func GetBlocksByDay(day time.Time) ([]*ahimsajson.JsonBlkHead, error) {
+func (db *PublicRecord) GetBlocksByDay(day time.Time) ([]*ahimsajson.JsonBlkHead, error) {
 	blocks := []*ahimsajson.JsonBlkHead{}
 
 	start := day.Unix()
 	fin := day.AddDate(0, 0, 1).Unix()
 
-	rows, err := selectBlksByDay.Query(start, fin)
+	rows, err := db.selectBlksByDay.Query(start, fin)
 	defer rows.Close()
 	if err != nil {
 		return blocks, err
@@ -417,11 +375,11 @@ func GetBlocksByDay(day time.Time) ([]*ahimsajson.JsonBlkHead, error) {
 // reported timesetamps. This is entirely gameable by someone who plays
 // with their bltn's timestamp, but for now it is a good hueristic to see
 // if the db is actively getting written to.
-func LatestBlkAndBltn() (int64, int64, error) {
+func (db *PublicRecord) LatestBlkAndBltn() (int64, int64, error) {
 
 	var latestBlk, latestBltn int64
 
-	row := selectDBStatus.QueryRow()
+	row := db.selectDBStatus.QueryRow()
 
 	err := row.Scan(&latestBlk, &latestBltn)
 	if err != nil {

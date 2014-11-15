@@ -11,11 +11,11 @@ import (
 )
 
 func newTestServer(t *testing.T) *httptest.Server {
-	_, err := ahimsadb.SetupTestDB()
+	db, err := ahimsadb.SetupTestDB()
 	if err != nil {
 		t.Fatal(err)
 	}
-	handler := Handler()
+	handler := Handler(db)
 	ts := httptest.NewServer(handler)
 	return ts
 }

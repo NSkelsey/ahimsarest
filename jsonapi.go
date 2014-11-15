@@ -14,7 +14,6 @@ import (
 )
 
 var (
-	db           *sql.DB
 	processStart time.Time = time.Now()
 )
 
@@ -30,196 +29,217 @@ func writeJson(w http.ResponseWriter, m interface{}) {
 	w.Write(bytes)
 }
 
-func BulletinHandler(w http.ResponseWriter, request *http.Request) {
+func BulletinHandler(db *ahimsadb.PublicRecord) func(http.ResponseWriter, *http.Request) {
+	return func(w http.ResponseWriter, request *http.Request) {
 
-	txid, _ := mux.Vars(request)["txid"]
-	bltn, err := ahimsadb.GetJsonBltn(db, txid)
-	if err == sql.ErrNoRows {
-		http.Error(w, "Bulletin does not exist", 404)
-		return
-	}
-	if err == ahimsadb.ErrBltnCensored {
-		http.Error(w, err.Error(), 451)
-		return
-	}
-	if err != nil {
-		http.Error(w, err.Error(), 500)
-		return
-	}
+		txid, _ := mux.Vars(request)["txid"]
+		bltn, err := db.GetJsonBltn(txid)
+		if err == sql.ErrNoRows {
+			http.Error(w, "Bulletin does not exist", 404)
+			return
+		}
+		if err == ahimsadb.ErrBltnCensored {
+			http.Error(w, err.Error(), 451)
+			return
+		}
+		if err != nil {
+			http.Error(w, err.Error(), 500)
+			return
+		}
 
-	writeJson(w, bltn)
-
+		writeJson(w, bltn)
+	}
 }
 
 // Handles requests for individual Blocks
-func BlockHandler(w http.ResponseWriter, request *http.Request) {
+func BlockHandler(db *ahimsadb.PublicRecord) func(http.ResponseWriter, *http.Request) {
+	return func(w http.ResponseWriter, request *http.Request) {
 
-	hash, _ := mux.Vars(request)["hash"]
+		hash, _ := mux.Vars(request)["hash"]
 
-	blockH, err := ahimsadb.GetJsonBlock(db, hash)
-	if err == sql.ErrNoRows {
-		http.Error(w, err.Error(), 404)
-		return
+		blockH, err := db.GetJsonBlock(hash)
+		if err == sql.ErrNoRows {
+			http.Error(w, err.Error(), 404)
+			return
+		}
+		if err != nil {
+			http.Error(w, err.Error(), 500)
+			return
+		}
+
+		writeJson(w, blockH)
 	}
-	if err != nil {
-		http.Error(w, err.Error(), 500)
-		return
-	}
-
-	writeJson(w, blockH)
 }
 
 // Handles a request for information about an individual author
-func AuthorHandler(w http.ResponseWriter, request *http.Request) {
+func AuthorHandler(db *ahimsadb.PublicRecord) func(http.ResponseWriter, *http.Request) {
+	return func(w http.ResponseWriter, request *http.Request) {
 
-	addr, _ := mux.Vars(request)["addr"]
+		addr, _ := mux.Vars(request)["addr"]
 
-	authorJson, err := ahimsadb.GetJsonAuthor(db, addr)
-	if err == sql.ErrNoRows {
-		http.Error(w, "Author does not exist", 404)
-		return
+		authorJson, err := db.GetJsonAuthor(addr)
+		if err == sql.ErrNoRows {
+			http.Error(w, "Author does not exist", 404)
+			return
+		}
+		if err != nil {
+			http.Error(w, err.Error(), 500)
+			return
+		}
+
+		writeJson(w, authorJson)
 	}
-	if err != nil {
-		http.Error(w, err.Error(), 500)
-		return
-	}
-
-	writeJson(w, authorJson)
 }
 
 // Handles serving the blacklist contents over http. If the black list is empty
 // it serves an empty list.
-func BlacklistHandler(w http.ResponseWriter, request *http.Request) {
-	blacklist, err := ahimsadb.GetJsonBlacklist(db)
-	if err != nil {
-		http.Error(w, err.Error(), 500)
-		return
+func BlacklistHandler(db *ahimsadb.PublicRecord) func(http.ResponseWriter, *http.Request) {
+	return func(w http.ResponseWriter, request *http.Request) {
+		blacklist, err := db.GetJsonBlacklist()
+		if err != nil {
+			http.Error(w, err.Error(), 500)
+			return
+		}
+		writeJson(w, blacklist)
 	}
-	writeJson(w, blacklist)
 }
 
 // Handles serving a bulletin board.
-func BoardHandler(w http.ResponseWriter, request *http.Request) {
-	boardstr, _ := mux.Vars(request)["board"]
+func BoardHandler(db *ahimsadb.PublicRecord) func(http.ResponseWriter, *http.Request) {
+	return func(w http.ResponseWriter, request *http.Request) {
+		boardstr, _ := mux.Vars(request)["board"]
 
-	board, err := ahimsadb.GetWholeBoard(db, boardstr)
-	if err == sql.ErrNoRows {
-		http.Error(w, err.Error(), 404)
-		return
+		board, err := db.GetWholeBoard(boardstr)
+		if err == sql.ErrNoRows {
+			http.Error(w, err.Error(), 404)
+			return
+		}
+
+		if err != nil {
+			http.Error(w, err.Error(), 500)
+			return
+		}
+
+		writeJson(w, board)
 	}
-
-	if err != nil {
-		http.Error(w, err.Error(), 500)
-		return
-	}
-
-	writeJson(w, board)
 }
 
 // Returns all bulletins under the board that has no name! Since board is an
 // optional field you don't actually have to specify one. If that's the case
 // then your bulletins will just have a NULL value in the board column
-func NoBoardHandler(w http.ResponseWriter, request *http.Request) {
+func NoBoardHandler(db *ahimsadb.PublicRecord) func(http.ResponseWriter, *http.Request) {
+	return func(w http.ResponseWriter, request *http.Request) {
 
-	board, err := ahimsadb.GetWholeBoard(db, "")
-	if err == sql.ErrNoRows {
-		http.Error(w, err.Error(), 404)
-		return
+		board, err := db.GetWholeBoard("")
+		if err == sql.ErrNoRows {
+			http.Error(w, err.Error(), 404)
+			return
+		}
+
+		if err != nil {
+			http.Error(w, err.Error(), 500)
+			return
+		}
+
+		writeJson(w, board)
 	}
-
-	if err != nil {
-		http.Error(w, err.Error(), 500)
-		return
-	}
-
-	writeJson(w, board)
 }
 
 // Returns the summaries of every board in the system sorted in lexicographic order.
-func AllBoardsHandler(w http.ResponseWriter, request *http.Request) {
+func AllBoardsHandler(db *ahimsadb.PublicRecord) func(http.ResponseWriter, *http.Request) {
+	return func(w http.ResponseWriter, request *http.Request) {
 
-	boards, err := ahimsadb.GetAllBoards(db)
-	if err != nil {
-		http.Error(w, err.Error(), 500)
-		return
+		boards, err := db.GetAllBoards()
+		if err != nil {
+			http.Error(w, err.Error(), 500)
+			return
+		}
+
+		writeJson(w, boards)
 	}
-
-	writeJson(w, boards)
 }
 
 // Returns all of the bulletins seen within the last 6 blocks.
-func RecentHandler(w http.ResponseWriter, request *http.Request) {
+func RecentHandler(db *ahimsadb.PublicRecord) func(http.ResponseWriter, *http.Request) {
+	return func(w http.ResponseWriter, request *http.Request) {
 
-	bltns, err := ahimsadb.GetRecentConf(db, 6)
-	if err != nil {
-		http.Error(w, err.Error(), 500)
-		return
+		bltns, err := db.GetRecentConf(6)
+		if err != nil {
+			http.Error(w, err.Error(), 500)
+			return
+		}
+
+		writeJson(w, bltns)
 	}
-
-	writeJson(w, bltns)
 }
 
 // Returns all of the unconfirmed bulletins ordered by reported time.
-func UnconfirmedHandler(w http.ResponseWriter, request *http.Request) {
+func UnconfirmedHandler(db *ahimsadb.PublicRecord) func(http.ResponseWriter, *http.Request) {
+	return func(w http.ResponseWriter, request *http.Request) {
 
-	bltns, err := ahimsadb.GetUnconfirmed(db)
-	if err != nil {
-		http.Error(w, err.Error(), 500)
-		return
+		bltns, err := db.GetUnconfirmed()
+		if err != nil {
+			http.Error(w, err.Error(), 500)
+			return
+		}
+
+		writeJson(w, bltns)
 	}
-
-	writeJson(w, bltns)
 }
 
 // Returns all of the block summaries for a given day.
-func BlockDayHandler(w http.ResponseWriter, request *http.Request) {
+func BlockDayHandler(db *ahimsadb.PublicRecord) func(http.ResponseWriter, *http.Request) {
+	return func(w http.ResponseWriter, request *http.Request) {
 
-	datestr := mux.Vars(request)["day"]
+		datestr := mux.Vars(request)["day"]
 
-	// convert into UTC then do lookups within range
-	layout := "02-01-2006"
-	date, err := time.Parse(layout, datestr)
-	if err != nil {
-		http.Error(w, err.Error(), 500)
-		return
+		// convert into UTC then do lookups within range
+		layout := "02-01-2006"
+		date, err := time.Parse(layout, datestr)
+		if err != nil {
+			http.Error(w, err.Error(), 500)
+			return
+		}
+
+		blocks, err := db.GetBlocksByDay(date)
+		if err == sql.ErrNoRows {
+			http.Error(w, err.Error(), 404)
+			return
+		}
+		if err != nil {
+			http.Error(w, err.Error(), 500)
+			return
+		}
+
+		writeJson(w, blocks)
 	}
-
-	blocks, err := ahimsadb.GetBlocksByDay(date)
-	if err == sql.ErrNoRows {
-		http.Error(w, err.Error(), 404)
-		return
-	}
-	if err != nil {
-		http.Error(w, err.Error(), 500)
-		return
-	}
-
-	writeJson(w, blocks)
 }
 
 // Handles the round trip to ahimsadb to get DB status. In the future
 // this could look up the status of other processes that are running
 // on the machine and report their status as well.
-func StatusHandler(w http.ResponseWriter, request *http.Request) {
+func StatusHandler(db *ahimsadb.PublicRecord) func(http.ResponseWriter, *http.Request) {
+	return func(w http.ResponseWriter, request *http.Request) {
 
-	latestBlk, latestBltn, err := ahimsadb.LatestBlkAndBltn()
-	if err != nil {
-		http.Error(w, err.Error(), 500)
-		return
+		latestBlk, latestBltn, err := db.LatestBlkAndBltn()
+		if err != nil {
+			http.Error(w, err.Error(), 500)
+			return
+		}
+
+		status := &ahimsajson.Status{
+			Version:    ahimsa.Version,
+			AppStart:   processStart.Unix(),
+			LatestBlk:  latestBlk,
+			LatestBltn: latestBltn,
+		}
+
+		writeJson(w, status)
 	}
-
-	status := &ahimsajson.Status{
-		Version:    ahimsa.Version,
-		AppStart:   processStart.Unix(),
-		LatestBlk:  latestBlk,
-		LatestBltn: latestBltn,
-	}
-
-	writeJson(w, status)
 }
 
 // returns the http handler initialized with the api's routes
-func Handler() http.Handler {
+func Handler(db *ahimsadb.PublicRecord) http.Handler {
 
 	r := mux.NewRouter()
 	sha2re := "([a-f]|[A-F]|[0-9]){64}"
@@ -232,21 +252,21 @@ func Handler() http.Handler {
 	dayre := `[0-9]{1,2}-[0-9]{1,2}-[0-9]{4}`
 
 	// Item handlers
-	r.HandleFunc(fmt.Sprintf("/bulletin/{txid:%s}", sha2re), BulletinHandler)
-	r.HandleFunc(fmt.Sprintf("/author/{addr:%s}", addrgex), AuthorHandler)
-	r.HandleFunc(fmt.Sprintf("/block/{hash:%s}", sha2re), BlockHandler)
-	r.HandleFunc(fmt.Sprintf("/board/{board:%s}", boardre), BoardHandler)
-	r.HandleFunc("/blacklist", BlacklistHandler)
-	r.HandleFunc("/noboard", NoBoardHandler)
+	r.HandleFunc(fmt.Sprintf("/bulletin/{txid:%s}", sha2re), BulletinHandler(db))
+	r.HandleFunc(fmt.Sprintf("/author/{addr:%s}", addrgex), AuthorHandler(db))
+	r.HandleFunc(fmt.Sprintf("/block/{hash:%s}", sha2re), BlockHandler(db))
+	r.HandleFunc(fmt.Sprintf("/board/{board:%s}", boardre), BoardHandler(db))
+	r.HandleFunc("/blacklist", BlacklistHandler(db))
+	r.HandleFunc("/noboard", NoBoardHandler(db))
 
 	// Aggregate handlers
-	r.HandleFunc("/boards", AllBoardsHandler)
-	r.HandleFunc("/recent", RecentHandler)
-	r.HandleFunc("/unconfirmed", UnconfirmedHandler)
-	r.HandleFunc(fmt.Sprintf("/blocks/{day:%s}", dayre), BlockDayHandler)
+	r.HandleFunc("/boards", AllBoardsHandler(db))
+	r.HandleFunc("/recent", RecentHandler(db))
+	r.HandleFunc("/unconfirmed", UnconfirmedHandler(db))
+	r.HandleFunc(fmt.Sprintf("/blocks/{day:%s}", dayre), BlockDayHandler(db))
 
 	// Meta handlers
-	r.HandleFunc("/status", StatusHandler)
+	r.HandleFunc("/status", StatusHandler(db))
 
 	return r
 }

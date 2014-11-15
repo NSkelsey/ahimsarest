@@ -1,7 +1,6 @@
 package main
 
 import (
-	"database/sql"
 	"log"
 	"net/http"
 
@@ -9,19 +8,17 @@ import (
 	"github.com/NSkelsey/ahimsarest/ahimsadb"
 )
 
-var db *sql.DB
-
 func main() {
 
 	dbpath := "/home/ubuntu/gocode/src/github.com/NSkelsey/ahimsarest/test.db"
 
 	var err error
-	db, err = ahimsadb.LoadDb(dbpath)
+	db, err := ahimsadb.LoadDb(dbpath)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	http.Handle("/", ahimsarest.Handler())
+	http.Handle("/", ahimsarest.Handler(db))
 	host := "0.0.0.0:1054"
 	log.Printf("ahimsarest listening at %s.\n", host)
 	http.ListenAndServe(host, nil)

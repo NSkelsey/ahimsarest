@@ -1,1 +1,3 @@
 language: go
+env:
+    - GOPATH=/home/travis/gopath
