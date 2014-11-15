@@ -5,18 +5,25 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"time"
 
 	"github.com/NSkelsey/ahimsarest/ahimsadb"
+	"github.com/NSkelsey/ahimsarest/ahimsajson"
+	"github.com/NSkelsey/protocol/ahimsa"
 	"github.com/gorilla/mux"
 )
 
-var db *sql.DB
+var (
+	db           *sql.DB
+	processStart time.Time = time.Now()
+)
 
 func writeJson(w http.ResponseWriter, m interface{}) {
 
 	bytes, err := json.Marshal(m)
 	if err != nil {
 		http.Error(w, "Failed", 500)
+		return
 	}
 
 	w.Header().Set("Content-Type", "application/json")
@@ -98,6 +105,7 @@ func BoardHandler(w http.ResponseWriter, request *http.Request) {
 	board, err := ahimsadb.GetWholeBoard(db, boardstr)
 	if err == sql.ErrNoRows {
 		http.Error(w, err.Error(), 404)
+		return
 	}
 
 	if err != nil {
@@ -116,6 +124,7 @@ func NoBoardHandler(w http.ResponseWriter, request *http.Request) {
 	board, err := ahimsadb.GetWholeBoard(db, "")
 	if err == sql.ErrNoRows {
 		http.Error(w, err.Error(), 404)
+		return
 	}
 
 	if err != nil {
@@ -132,6 +141,7 @@ func AllBoardsHandler(w http.ResponseWriter, request *http.Request) {
 	boards, err := ahimsadb.GetAllBoards(db)
 	if err != nil {
 		http.Error(w, err.Error(), 500)
+		return
 	}
 
 	writeJson(w, boards)
@@ -143,6 +153,7 @@ func RecentHandler(w http.ResponseWriter, request *http.Request) {
 	bltns, err := ahimsadb.GetRecentConf(db, 6)
 	if err != nil {
 		http.Error(w, err.Error(), 500)
+		return
 	}
 
 	writeJson(w, bltns)
@@ -154,6 +165,7 @@ func UnconfirmedHandler(w http.ResponseWriter, request *http.Request) {
 	bltns, err := ahimsadb.GetUnconfirmed(db)
 	if err != nil {
 		http.Error(w, err.Error(), 500)
+		return
 	}
 
 	writeJson(w, bltns)
@@ -162,16 +174,48 @@ func UnconfirmedHandler(w http.ResponseWriter, request *http.Request) {
 // Returns all of the block summaries for a given day.
 func BlockDayHandler(w http.ResponseWriter, request *http.Request) {
 
-	// TODO write testcases
-	day := int(mux.Vars.request["day"])
-	month := int(mux.Vars.request["month"])
-	year := int(mux.Vars.request["year"])
+	datestr := mux.Vars(request)["day"]
 
-	logger.Println(day, month, year)
+	// convert into UTC then do lookups within range
+	layout := "02-01-2006"
+	date, err := time.Parse(layout, datestr)
+	if err != nil {
+		http.Error(w, err.Error(), 500)
+		return
+	}
 
-	// TODO test + convert into UTC then do lookups withinin range
+	blocks, err := ahimsadb.GetBlocksByDay(date)
+	if err == sql.ErrNoRows {
+		http.Error(w, err.Error(), 404)
+		return
+	}
+	if err != nil {
+		http.Error(w, err.Error(), 500)
+		return
+	}
 
-	//writeJson(w, blocks)
+	writeJson(w, blocks)
+}
+
+// Handles the round trip to ahimsadb to get DB status. In the future
+// this could look up the status of other processes that are running
+// on the machine and report their status as well.
+func StatusHandler(w http.ResponseWriter, request *http.Request) {
+
+	latestBlk, latestBltn, err := ahimsadb.LatestBlkAndBltn()
+	if err != nil {
+		http.Error(w, err.Error(), 500)
+		return
+	}
+
+	status := &ahimsajson.Status{
+		Version:    ahimsa.Version,
+		AppStart:   processStart.Unix(),
+		LatestBlk:  latestBlk,
+		LatestBltn: latestBltn,
+	}
+
+	writeJson(w, status)
 }
 
 // returns the http handler initialized with the api's routes
@@ -185,7 +229,7 @@ func Handler() http.Handler {
 	boardre := ".{1,90}"
 
 	// A single day follows this format: DD-MM-YY
-	dayre := "{day:[0-9]{2}}-{month:[0-9]{2}}-{year:[0-9]{4}}"
+	dayre := `[0-9]{1,2}-[0-9]{1,2}-[0-9]{4}`
 
 	// Item handlers
 	r.HandleFunc(fmt.Sprintf("/bulletin/{txid:%s}", sha2re), BulletinHandler)
@@ -199,7 +243,10 @@ func Handler() http.Handler {
 	r.HandleFunc("/boards", AllBoardsHandler)
 	r.HandleFunc("/recent", RecentHandler)
 	r.HandleFunc("/unconfirmed", UnconfirmedHandler)
-	r.HandleFunc(fmt.Sprintf("/blocks/%s", dayre), BlockDayHandler)
+	r.HandleFunc(fmt.Sprintf("/blocks/{day:%s}", dayre), BlockDayHandler)
+
+	// Meta handlers
+	r.HandleFunc("/status", StatusHandler)
 
 	return r
 }

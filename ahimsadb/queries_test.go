@@ -1,6 +1,9 @@
 package ahimsadb
 
-import "testing"
+import (
+	"testing"
+	"time"
+)
 
 func TestJsonBlock(t *testing.T) {
 
@@ -94,8 +97,41 @@ func TestAllBoards(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if len(allBoards) != 2 {
+	if len(allBoards) != 4 {
 		t.Fatalf("Wrong number of boards returned:\n [%s]\n", allBoards)
 	}
 
+}
+
+func TestBlockDay(t *testing.T) {
+
+	SetupTestDB()
+
+	target := time.Date(2014, time.November, 1, 0, 0, 0, 0, time.UTC)
+
+	blks, err := GetBlocksByDay(target)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if len(blks) != 4 {
+		t.Fatalf("Wrong number of blocks for this day:\n%s\n", blks)
+	}
+}
+
+func TestLatestDB(t *testing.T) {
+	SetupTestDB()
+
+	lastBlk, lastBltn, err := LatestBlkAndBltn()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if lastBlk != 1415862580 || lastBltn != 1415854832 {
+		t.Fatalf(
+			"Wrong latest things returned!\nBltn: %d\nBlk: %d",
+			lastBlk,
+			lastBltn,
+		)
+	}
 }

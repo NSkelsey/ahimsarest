@@ -59,6 +59,32 @@ func scanJsonBltn(cursor scannable, withhold bool) (*ahimsajson.JsonBltn, error)
 	return bltn, nil
 }
 
+// Returns a JsonBlk scanned from the cursor
+func scanJsonBlk(cursor scannable) (*ahimsajson.JsonBlkHead, error) {
+
+	var hash, prevhash sql.NullString
+	var timestamp, height, numbltns sql.NullInt64
+
+	err := cursor.Scan(&hash, &prevhash, &height, &timestamp, &numbltns)
+	if err != nil {
+		return nil, err
+	}
+
+	if !hash.Valid {
+		return nil, sql.ErrNoRows
+	}
+
+	blkHead := &ahimsajson.JsonBlkHead{
+		Hash:      hash.String,
+		PrevHash:  prevhash.String,
+		Height:    uint64(height.Int64),
+		Timestamp: timestamp.Int64,
+		NumBltns:  uint64(numbltns.Int64),
+	}
+
+	return blkHead, nil
+}
+
 // Returns the bulletins returned by the sql query.
 func getRelevantBltns(rows *sql.Rows) ([]*ahimsajson.JsonBltn, error) {
 	bltns := []*ahimsajson.JsonBltn{}

@@ -43,10 +43,11 @@ type AuthorResp struct {
 }
 
 // Holds meta information about the server
-type Info struct {
-	Uptime    int64  `json:"uptime"`
-	Version   string `json:"version"`
-	LatestBlk int64  `json:"latestBlock"`
+type Status struct {
+	Version    string `json:"version"`
+	AppStart   int64  `json:"appStart"`
+	LatestBlk  int64  `json:"latestBlock"`
+	LatestBltn int64  `json:"latestBltn"`
 }
 
 // Holds summary information about a given board

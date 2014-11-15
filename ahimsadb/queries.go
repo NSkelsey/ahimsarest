@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"errors"
 	"net/url"
+	"time"
 
 	_ "code.google.com/p/go-sqlite/go1/sqlite3"
 	"github.com/NSkelsey/ahimsarest/ahimsajson"
@@ -23,7 +24,8 @@ var (
 	// Used by GetJsonBlock
 	selectBlockHead    *sql.Stmt
 	selectBlockHeadSql string = `
-		SELECT hash, prevhash, height, timestamp FROM blocks
+		SELECT hash, prevhash, height, blocks.timestamp, count(bulletins.txid) 
+		FROM blocks JOIN bulletins on blocks.hash = bulletins.block
 		WHERE blocks.hash = $1
 	`
 	selectBlockBltns    *sql.Stmt
@@ -113,6 +115,26 @@ var (
 		ORDER BY bulletins.timestamp
 	`
 
+	// Used by GetBlocksByDay
+	selectBlksByDay    *sql.Stmt
+	selectBlksByDaySql string = `
+		SELECT hash, prevhash, height, blocks.timestamp, count(bulletins.txid) 
+		FROM blocks LEFT JOIN bulletins ON bulletins.block = blocks.hash
+		WHERE blocks.timestamp > $1 AND blocks.timestamp < $2
+		GROUP BY blocks.hash
+		ORDER BY height
+	`
+
+	// Used by LatestBlkAndBltn
+	selectDBStatus    *sql.Stmt
+	selectDBStatusSql string = `
+		SELECT l_blk.timestamp, l_bltn.timestamp
+		FROM (SELECT max(blocks.timestamp) AS timestamp FROM blocks) as l_blk,
+			 (SELECT max(bulletins.timestamp) AS timestamp FROM bulletins) as l_bltn
+	`
+
+	// This is a map that compiles all of the sql statements before runtime.
+	// This is a premature optimization.
 	sqlStmts = map[string]**sql.Stmt{
 		selectTxidSql:        &selectTxid,
 		selectBlockHeadSql:   &selectBlockHead,
@@ -125,6 +147,8 @@ var (
 		selectAllBoardsSql:   &selectAllBoards,
 		selectRecentConfSql:  &selectRecentConf,
 		selectUnconfirmedSql: &selectUnconfirmed,
+		selectBlksByDaySql:   &selectBlksByDay,
+		selectDBStatusSql:    &selectDBStatus,
 	}
 )
 
@@ -220,12 +244,8 @@ func GetJsonBltn(db *sql.DB, txid string) (*ahimsajson.JsonBltn, error) {
 // Returns the block head
 func GetJsonBlock(db *sql.DB, h string) (*ahimsajson.JsonBlkResp, error) {
 
-	var hash, prevhash string
-	var timestamp int64
-	var height uint64
-
 	row := selectBlockHead.QueryRow(h)
-	err := row.Scan(&hash, &prevhash, &height, &timestamp)
+	blkHead, err := scanJsonBlk(row)
 	if err != nil {
 		return nil, err
 	}
@@ -239,14 +259,6 @@ func GetJsonBlock(db *sql.DB, h string) (*ahimsajson.JsonBlkResp, error) {
 	bltns, err := getRelevantBltns(rows)
 	if err != nil {
 		return nil, err
-	}
-
-	blkHead := &ahimsajson.JsonBlkHead{
-		Hash:      hash,
-		PrevHash:  prevhash,
-		Height:    height,
-		Timestamp: timestamp,
-		NumBltns:  uint64(len(bltns)),
 	}
 
 	blkResp := &ahimsajson.JsonBlkResp{
@@ -370,4 +382,51 @@ func GetUnconfirmed(db *sql.DB) ([]*ahimsajson.JsonBltn, error) {
 	}
 
 	return bltns, nil
+}
+
+func GetBlocksByDay(day time.Time) ([]*ahimsajson.JsonBlkHead, error) {
+	blocks := []*ahimsajson.JsonBlkHead{}
+
+	start := day.Unix()
+	fin := day.AddDate(0, 0, 1).Unix()
+
+	rows, err := selectBlksByDay.Query(start, fin)
+	defer rows.Close()
+	if err != nil {
+		return blocks, err
+	}
+
+	for rows.Next() {
+		blk, err := scanJsonBlk(rows)
+		if err != nil {
+			return blocks, err
+		}
+
+		blocks = append(blocks, blk)
+	}
+
+	// Catch case where rows.Next was never true. Caused by the GROUP BY
+	if len(blocks) < 1 {
+		return blocks, sql.ErrNoRows
+	}
+
+	return blocks, nil
+}
+
+// Returns the timestamps of the latest block and bulletin by their self
+// reported timesetamps. This is entirely gameable by someone who plays
+// with their bltn's timestamp, but for now it is a good hueristic to see
+// if the db is actively getting written to.
+func LatestBlkAndBltn() (int64, int64, error) {
+
+	var latestBlk, latestBltn int64
+
+	row := selectDBStatus.QueryRow()
+
+	err := row.Scan(&latestBlk, &latestBltn)
+	if err != nil {
+		return -1, -1, err
+	}
+
+	return latestBlk, latestBltn, nil
 }
