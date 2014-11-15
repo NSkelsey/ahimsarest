@@ -2,13 +2,13 @@ package ahimsadb
 
 import (
 	"database/sql"
-	"os"
 	"path/filepath"
 )
 
 func SetupTestDB() (*PublicRecord, error) {
 
-	dbpath := os.Getenv("GOPATH") + "/src/github.com/NSkelsey/ahimsarest/test.db"
+	//dbpath := os.Getenv("GOPATH") + "/src/github.com/NSkelsey/ahimsarest/test.db"
+	dbpath := "./test.db"
 	dbpath = filepath.Clean(dbpath)
 	var err error
 	db, err := LoadDb(dbpath)
