@@ -1,3 +1,2 @@
 language: go
-env:
-    - MOPATH="/home/travis/gopath"
+env: TEST_DB_PATH="/home/travis/gopath/src/github.com/NSkelsey/ahimsarest/test.db"
