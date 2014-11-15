@@ -1,3 +1,7 @@
 language: go
+before_script:
+    - ls /home/travis/gopath/src/github.com/NSkelsey/ahimsarest
+    - ls $GOPATH/src/github.com/NSkelsey/ahimsarest
+    - ls $GOPATH/src/github.com/
 env:
     - GOPATH=/home/travis/gopath
