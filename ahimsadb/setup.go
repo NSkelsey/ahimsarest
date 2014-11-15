@@ -14,7 +14,7 @@ func SetupTestDB() (*PublicRecord, error) {
 	if testEnvPath != "" {
 		dbpath = testEnvPath
 	} else {
-		dbpath = os.Getenv("MOPATH") + "/src/github.com/NSkelsey/ahimsarest/test.db"
+		dbpath = os.Getenv("GOPATH") + "/src/github.com/NSkelsey/ahimsarest/test.db"
 		dbpath = filepath.Clean(dbpath)
 	}
 	var err error
