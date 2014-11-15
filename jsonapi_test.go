@@ -137,23 +137,26 @@ func TestResponses(t *testing.T) {
 	defer ts.Close()
 
 	for _, testCase := range responseTests {
-		t.Logf("Endpoint: %s", testCase.endpoint)
 		url := ts.URL + testCase.endpoint
 		res, err := http.Get(url)
 		if err != nil {
+			t.Logf("Endpoint: %s", testCase.endpoint)
 			t.Logf("%v", res)
 			t.Error(err)
 		}
 		if res.StatusCode != 200 {
+			t.Logf("Endpoint: %s", testCase.endpoint)
 			t.Errorf("Responded with a %d!", res.StatusCode)
 		}
 
 		body, err := ioutil.ReadAll(res.Body)
 		res.Body.Close()
 		if err != nil {
+			t.Logf("Endpoint: %s", testCase.endpoint)
 			t.Error(err)
 		}
 		if string(body) != testCase.body {
+			t.Logf("Endpoint: %s", testCase.endpoint)
 			t.Logf("Responded with body:\n%s\nWanted:\n%s\n", body, testCase.body)
 			t.Errorf("Bad json response")
 		}
