@@ -7,7 +7,7 @@ import (
 
 	"testing"
 
-	"github.com/NSkelsey/ahimsarest/ahimsadb"
+	"github.com/NSkelsey/ahimsadb"
 )
 
 func newTestServer(t *testing.T) *httptest.Server {
@@ -55,6 +55,7 @@ var statusCodeTests = []struct {
 	{"/blocks/01-11-2014", 200},
 	{"/blocks/111-990-2014", 404},
 	{"/status", 200},
+	{"/authors", 200},
 }
 
 // Runs a series of tests to assert the api is returning the correct status codes.
@@ -127,6 +128,10 @@ var responseTests = []struct {
 	{
 		endpoint: "/blocks/01-11-2014",
 		body:     `[{"hash":"000000009eca8c144e1be1daddee437e14d92c2379ed70adbb586c6b9a5610f4","prevHash":"0000000083f4f28cd2061073754383baeb38d3639e153b18e643268771e27f12","timestamp":1414801097,"height":305694,"numBltns":0},{"hash":"00000000efaee711979fe42e667188e50b1096e4d9cfcbc9a82101336189c2ca","prevHash":"00000000ef99c1e689c70bf2eaddbef5dc41412dfc0c350226d9caa850da307c","timestamp":1414800258,"height":305698,"numBltns":0},{"hash":"000000002f21b1943beb5c07a35fb89238b6dcd42312d39789b4d1b19b83f08a","prevHash":"00000000efaee711979fe42e667188e50b1096e4d9cfcbc9a82101336189c2ca","timestamp":1414801459,"height":305699,"numBltns":0},{"hash":"00000000777213b4fd7c5d5a71b9b52608356c4194203b1b63d1bb0e6141d17d","prevHash":"00000000f1cb8c224acdb0e1becbfa4218f1e13b0d4dbbce64d0a3c15d8bf55f","timestamp":1414813562,"height":305724,"numBltns":1}]`,
+	},
+	{
+		endpoint: "/authors",
+		body:     `[{"addr":"mhDrE934aiWYESLKbxZjUsMBZBSHUbiZRw","numBltns":1},{"addr":"miUDcP8obUKPhqkrBrQz57sbSg2Mz1kZXH","numBltns":2,"firstBlkTs":1414017952},{"addr":"mnPZBNTrLoCoSkAgSfKeeCujU3129PG6vn","numBltns":1,"firstBlkTs":1414813562},{"addr":"mraY7GWs4G65ZYqWoPEqwPxb6aMuufTq2c","numBltns":1},{"addr":"mxmvvxMNaXvPPnU5vHXPoPEsrHbbnSAehh","numBltns":1},{"addr":"n1j3AYj82gnWmLnmFbTcF4GDxHNWNGyxG1","numBltns":1,"firstBlkTs":1415862580}]`,
 	},
 }
 

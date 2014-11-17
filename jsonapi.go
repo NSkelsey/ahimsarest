@@ -7,7 +7,7 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/NSkelsey/ahimsarest/ahimsadb"
+	"github.com/NSkelsey/ahimsadb"
 	"github.com/NSkelsey/ahimsarest/ahimsajson"
 	"github.com/NSkelsey/protocol/ahimsa"
 	"github.com/gorilla/mux"
@@ -159,6 +159,20 @@ func AllBoardsHandler(db *ahimsadb.PublicRecord) func(http.ResponseWriter, *http
 	}
 }
 
+// Returns all of the authors in the public record sorted in alphabetical order
+func AllAuthorsHandler(db *ahimsadb.PublicRecord) func(http.ResponseWriter, *http.Request) {
+	return func(w http.ResponseWriter, request *http.Request) {
+
+		authors, err := db.GetAllAuthors()
+		if err != nil {
+			http.Error(w, err.Error(), 500)
+			return
+		}
+
+		writeJson(w, authors)
+	}
+}
+
 // Returns all of the bulletins seen within the last 6 blocks.
 func RecentHandler(db *ahimsadb.PublicRecord) func(http.ResponseWriter, *http.Request) {
 	return func(w http.ResponseWriter, request *http.Request) {
@@ -263,6 +277,7 @@ func Handler(db *ahimsadb.PublicRecord) http.Handler {
 	r.HandleFunc("/boards", AllBoardsHandler(db))
 	r.HandleFunc("/recent", RecentHandler(db))
 	r.HandleFunc("/unconfirmed", UnconfirmedHandler(db))
+	r.HandleFunc("/authors", AllAuthorsHandler(db))
 	r.HandleFunc(fmt.Sprintf("/blocks/{day:%s}", dayre), BlockDayHandler(db))
 
 	// Meta handlers

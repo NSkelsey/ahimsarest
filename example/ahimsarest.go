@@ -4,13 +4,13 @@ import (
 	"log"
 	"net/http"
 
+	"github.com/NSkelsey/ahimsadb"
 	"github.com/NSkelsey/ahimsarest"
-	"github.com/NSkelsey/ahimsarest/ahimsadb"
 )
 
 func main() {
 
-	dbpath := "/home/ubuntu/gocode/src/github.com/NSkelsey/ahimsarest/test.db"
+	dbpath := "/home/ubuntu/.ahimsa/pubrecord.db"
 
 	var err error
 	db, err := ahimsadb.LoadDb(dbpath)
