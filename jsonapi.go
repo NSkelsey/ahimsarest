@@ -252,8 +252,9 @@ func StatusHandler(db *ahimsadb.PublicRecord) func(http.ResponseWriter, *http.Re
 	}
 }
 
-// returns the http handler initialized with the api's routes
-func Handler(db *ahimsadb.PublicRecord) http.Handler {
+// returns the http handler initialized with the api's routes. The prefix should
+// start and end with slashes. For example /api/ is a good prefix.
+func Handler(prefix string, db *ahimsadb.PublicRecord) http.Handler {
 
 	r := mux.NewRouter()
 	sha2re := "([a-f]|[A-F]|[0-9]){64}"
@@ -265,23 +266,24 @@ func Handler(db *ahimsadb.PublicRecord) http.Handler {
 	// A single day follows this format: DD-MM-YY
 	dayre := `[0-9]{1,2}-[0-9]{1,2}-[0-9]{4}`
 
+	p := prefix
 	// Item handlers
-	r.HandleFunc(fmt.Sprintf("/bulletin/{txid:%s}", sha2re), BulletinHandler(db))
-	r.HandleFunc(fmt.Sprintf("/author/{addr:%s}", addrgex), AuthorHandler(db))
-	r.HandleFunc(fmt.Sprintf("/block/{hash:%s}", sha2re), BlockHandler(db))
-	r.HandleFunc(fmt.Sprintf("/board/{board:%s}", boardre), BoardHandler(db))
-	r.HandleFunc("/blacklist", BlacklistHandler(db))
-	r.HandleFunc("/noboard", NoBoardHandler(db))
+	r.HandleFunc(p+fmt.Sprintf("bulletin/{txid:%s}", sha2re), BulletinHandler(db))
+	r.HandleFunc(p+fmt.Sprintf("author/{addr:%s}", addrgex), AuthorHandler(db))
+	r.HandleFunc(p+fmt.Sprintf("block/{hash:%s}", sha2re), BlockHandler(db))
+	r.HandleFunc(p+fmt.Sprintf("board/{board:%s}", boardre), BoardHandler(db))
+	r.HandleFunc(p+"blacklist", BlacklistHandler(db))
+	r.HandleFunc(p+"noboard", NoBoardHandler(db))
 
 	// Aggregate handlers
-	r.HandleFunc("/boards", AllBoardsHandler(db))
-	r.HandleFunc("/recent", RecentHandler(db))
-	r.HandleFunc("/unconfirmed", UnconfirmedHandler(db))
-	r.HandleFunc("/authors", AllAuthorsHandler(db))
-	r.HandleFunc(fmt.Sprintf("/blocks/{day:%s}", dayre), BlockDayHandler(db))
+	r.HandleFunc(p+"boards", AllBoardsHandler(db))
+	r.HandleFunc(p+"recent", RecentHandler(db))
+	r.HandleFunc(p+"unconfirmed", UnconfirmedHandler(db))
+	r.HandleFunc(p+"authors", AllAuthorsHandler(db))
+	r.HandleFunc(p+fmt.Sprintf("blocks/{day:%s}", dayre), BlockDayHandler(db))
 
 	// Meta handlers
-	r.HandleFunc("/status", StatusHandler(db))
+	r.HandleFunc(p+"status/", StatusHandler(db))
 
 	return r
 }

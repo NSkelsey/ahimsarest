@@ -15,7 +15,7 @@ func newTestServer(t *testing.T) *httptest.Server {
 	if err != nil {
 		t.Fatal(err)
 	}
-	handler := Handler(db)
+	handler := Handler("", db)
 	ts := httptest.NewServer(handler)
 	return ts
 }
