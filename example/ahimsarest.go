@@ -13,7 +13,7 @@ func main() {
 	dbpath := "/home/ubuntu/.ahimsa/pubrecord.db"
 
 	var err error
-	db, err := ahimsadb.LoadDb(dbpath)
+	db, err := ahimsadb.LoadDB(dbpath)
 	if err != nil {
 		log.Fatal(err)
 	}
