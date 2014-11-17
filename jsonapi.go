@@ -283,7 +283,7 @@ func Handler(prefix string, db *ahimsadb.PublicRecord) http.Handler {
 	r.HandleFunc(p+fmt.Sprintf("blocks/{day:%s}", dayre), BlockDayHandler(db))
 
 	// Meta handlers
-	r.HandleFunc(p+"status/", StatusHandler(db))
+	r.HandleFunc(p+"status", StatusHandler(db))
 
 	return r
 }
