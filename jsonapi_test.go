@@ -15,7 +15,7 @@ func newTestServer(t *testing.T) *httptest.Server {
 	if err != nil {
 		t.Fatal(err)
 	}
-	handler := Handler("", db)
+	handler := Handler("/", db)
 	ts := httptest.NewServer(handler)
 	return ts
 }
@@ -47,7 +47,8 @@ var statusCodeTests = []struct {
 	{"/board/this-One-Isnt-Real", 404},
 	// Ensure that a utf-8 url-encoded board is reachable
 	{"/board/%23%21~%2AEnc%20ded-bo%C3%84&%5C/%D3%81", 200},
-	{"/noboard", 200},
+	{"/nilboard", 200},
+	{"/noboard", 404},
 	{"/recent", 200},
 	{"/boards", 200},
 	{"/unconfirmed", 200},
@@ -122,7 +123,7 @@ var responseTests = []struct {
 		body:     `[{"txid":"f7800712c20377c2d29680c1aecf2331d6f80f5a44510d30ceb2e30fd5dafdcf","board":"ahimsa-dev","author":"mraY7GWs4G65ZYqWoPEqwPxb6aMuufTq2c","msg":"Here comes the sun","timestamp":1413079355},{"txid":"2963cc35727f4e2c2bd4186e4550fe82b204e446ff7096b425f236264e05c7c6","board":"ahimsa-dev","author":"miUDcP8obUKPhqkrBrQz57sbSg2Mz1kZXH","msg":"pier and ocean ![mondrian 1915](http://img.ahimsa.io/85rEC0DJiWJyTxOct2dxJI8od1yhcIb5WsYvxGiJ7pY=)","timestamp":1414193281},{"txid":"5ed76ba84d4116045df14ecf7a7eca86300a649ef3cbefdd2eeea3f84e1432dc","board":"#!~*Enc ded-boÄ\u0026\\/Ӂ","author":"mhDrE934aiWYESLKbxZjUsMBZBSHUbiZRw","msg":"Attempting to comply with RFC 3986. Россия","timestamp":1414897285},{"txid":"126484de57d01ab12ae19dfc7c4eb74087e6abb8e749badecc75d570ad577fa3","author":"mxmvvxMNaXvPPnU5vHXPoPEsrHbbnSAehh","msg":"This should be in the nil board.","timestamp":1414900834}]`,
 	},
 	{
-		endpoint: "/noboard",
+		endpoint: "/nilboard",
 		body:     `{"summary":{"name":"","numBltns":1,"createdAt":0,"lastActive":1414900834,"createdBy":"mxmvvxMNaXvPPnU5vHXPoPEsrHbbnSAehh"},"bltns":[{"txid":"126484de57d01ab12ae19dfc7c4eb74087e6abb8e749badecc75d570ad577fa3","author":"mxmvvxMNaXvPPnU5vHXPoPEsrHbbnSAehh","msg":"This should be in the nil board.","timestamp":1414900834}]}`,
 	},
 	{

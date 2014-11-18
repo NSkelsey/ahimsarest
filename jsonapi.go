@@ -127,7 +127,7 @@ func BoardHandler(db *ahimsadb.PublicRecord) func(http.ResponseWriter, *http.Req
 // Returns all bulletins under the board that has no name! Since board is an
 // optional field you don't actually have to specify one. If that's the case
 // then your bulletins will just have a NULL value in the board column
-func NoBoardHandler(db *ahimsadb.PublicRecord) func(http.ResponseWriter, *http.Request) {
+func NilBoardHandler(db *ahimsadb.PublicRecord) func(http.ResponseWriter, *http.Request) {
 	return func(w http.ResponseWriter, request *http.Request) {
 
 		board, err := db.GetWholeBoard("")
@@ -273,7 +273,7 @@ func Handler(prefix string, db *ahimsadb.PublicRecord) http.Handler {
 	r.HandleFunc(p+fmt.Sprintf("block/{hash:%s}", sha2re), BlockHandler(db))
 	r.HandleFunc(p+fmt.Sprintf("board/{board:%s}", boardre), BoardHandler(db))
 	r.HandleFunc(p+"blacklist", BlacklistHandler(db))
-	r.HandleFunc(p+"noboard", NoBoardHandler(db))
+	r.HandleFunc(p+"nilboard", NilBoardHandler(db))
 
 	// Aggregate handlers
 	r.HandleFunc(p+"boards", AllBoardsHandler(db))
