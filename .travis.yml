@@ -1,2 +1,2 @@
 language: go
-env: TEST_DB_PATH="/home/travis/gopath/src/github.com/NSkelsey/ahimsarest/test.db"
+env: TEST_DB_PATH="/home/travis/gopath/src/github.com/NSkelsey/ahimsadb/test.db"
