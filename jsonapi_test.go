@@ -134,6 +134,10 @@ var responseTests = []struct {
 		endpoint: "/authors",
 		body:     `[{"addr":"mhDrE934aiWYESLKbxZjUsMBZBSHUbiZRw","numBltns":1},{"addr":"miUDcP8obUKPhqkrBrQz57sbSg2Mz1kZXH","numBltns":2,"firstBlkTs":1414017952},{"addr":"mnPZBNTrLoCoSkAgSfKeeCujU3129PG6vn","numBltns":1,"firstBlkTs":1414813562},{"addr":"mraY7GWs4G65ZYqWoPEqwPxb6aMuufTq2c","numBltns":1},{"addr":"mxmvvxMNaXvPPnU5vHXPoPEsrHbbnSAehh","numBltns":1},{"addr":"n1j3AYj82gnWmLnmFbTcF4GDxHNWNGyxG1","numBltns":1,"firstBlkTs":1415862580}]`,
 	},
+	{
+		endpoint: "/block/00000000efaee711979fe42e667188e50b1096e4d9cfcbc9a82101336189c2ca",
+		body:     `{"head":{"hash":"00000000efaee711979fe42e667188e50b1096e4d9cfcbc9a82101336189c2ca","prevHash":"00000000ef99c1e689c70bf2eaddbef5dc41412dfc0c350226d9caa850da307c","timestamp":1414800258,"height":305698,"numBltns":0},"bltns":[]}`,
+	},
 }
 
 // Executes tests to verify that the json returned at an endpoint is correct
