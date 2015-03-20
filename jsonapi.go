@@ -7,10 +7,10 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/NSkelsey/ahimsadb"
-	"github.com/NSkelsey/ahimsarest/ahimsajson"
-	"github.com/NSkelsey/protocol/ahimsa"
 	"github.com/gorilla/mux"
+	"github.com/soapboxsys/ombudslib/ombjson"
+	"github.com/soapboxsys/ombudslib/protocol/ombproto"
+	"github.com/soapboxsys/ombudslib/pubrecdb"
 )
 
 var (
@@ -29,7 +29,7 @@ func writeJson(w http.ResponseWriter, m interface{}) {
 	w.Write(bytes)
 }
 
-func BulletinHandler(db *ahimsadb.PublicRecord) func(http.ResponseWriter, *http.Request) {
+func BulletinHandler(db *pubrecdb.PublicRecord) func(http.ResponseWriter, *http.Request) {
 	return func(w http.ResponseWriter, request *http.Request) {
 
 		txid, _ := mux.Vars(request)["txid"]
@@ -38,7 +38,7 @@ func BulletinHandler(db *ahimsadb.PublicRecord) func(http.ResponseWriter, *http.
 			http.Error(w, "Bulletin does not exist", 404)
 			return
 		}
-		if err == ahimsadb.ErrBltnCensored {
+		if err == pubrecdb.ErrBltnCensored {
 			http.Error(w, err.Error(), 451)
 			return
 		}
@@ -52,7 +52,7 @@ func BulletinHandler(db *ahimsadb.PublicRecord) func(http.ResponseWriter, *http.
 }
 
 // Handles requests for individual Blocks
-func BlockHandler(db *ahimsadb.PublicRecord) func(http.ResponseWriter, *http.Request) {
+func BlockHandler(db *pubrecdb.PublicRecord) func(http.ResponseWriter, *http.Request) {
 	return func(w http.ResponseWriter, request *http.Request) {
 
 		hash, _ := mux.Vars(request)["hash"]
@@ -72,7 +72,7 @@ func BlockHandler(db *ahimsadb.PublicRecord) func(http.ResponseWriter, *http.Req
 }
 
 // Handles a request for information about an individual author
-func AuthorHandler(db *ahimsadb.PublicRecord) func(http.ResponseWriter, *http.Request) {
+func AuthorHandler(db *pubrecdb.PublicRecord) func(http.ResponseWriter, *http.Request) {
 	return func(w http.ResponseWriter, request *http.Request) {
 
 		addr, _ := mux.Vars(request)["addr"]
@@ -93,7 +93,7 @@ func AuthorHandler(db *ahimsadb.PublicRecord) func(http.ResponseWriter, *http.Re
 
 // Handles serving the blacklist contents over http. If the black list is empty
 // it serves an empty list.
-func BlacklistHandler(db *ahimsadb.PublicRecord) func(http.ResponseWriter, *http.Request) {
+func BlacklistHandler(db *pubrecdb.PublicRecord) func(http.ResponseWriter, *http.Request) {
 	return func(w http.ResponseWriter, request *http.Request) {
 		blacklist, err := db.GetJsonBlacklist()
 		if err != nil {
@@ -105,7 +105,7 @@ func BlacklistHandler(db *ahimsadb.PublicRecord) func(http.ResponseWriter, *http
 }
 
 // Handles serving a bulletin board.
-func BoardHandler(db *ahimsadb.PublicRecord) func(http.ResponseWriter, *http.Request) {
+func BoardHandler(db *pubrecdb.PublicRecord) func(http.ResponseWriter, *http.Request) {
 	return func(w http.ResponseWriter, request *http.Request) {
 		boardstr, _ := mux.Vars(request)["board"]
 
@@ -127,7 +127,7 @@ func BoardHandler(db *ahimsadb.PublicRecord) func(http.ResponseWriter, *http.Req
 // Returns all bulletins under the board that has no name! Since board is an
 // optional field you don't actually have to specify one. If that's the case
 // then your bulletins will just have a NULL value in the board column
-func NilBoardHandler(db *ahimsadb.PublicRecord) func(http.ResponseWriter, *http.Request) {
+func NilBoardHandler(db *pubrecdb.PublicRecord) func(http.ResponseWriter, *http.Request) {
 	return func(w http.ResponseWriter, request *http.Request) {
 
 		board, err := db.GetWholeBoard("")
@@ -146,7 +146,7 @@ func NilBoardHandler(db *ahimsadb.PublicRecord) func(http.ResponseWriter, *http.
 }
 
 // Returns the summaries of every board in the system sorted in lexicographic order.
-func AllBoardsHandler(db *ahimsadb.PublicRecord) func(http.ResponseWriter, *http.Request) {
+func AllBoardsHandler(db *pubrecdb.PublicRecord) func(http.ResponseWriter, *http.Request) {
 	return func(w http.ResponseWriter, request *http.Request) {
 
 		boards, err := db.GetAllBoards()
@@ -160,7 +160,7 @@ func AllBoardsHandler(db *ahimsadb.PublicRecord) func(http.ResponseWriter, *http
 }
 
 // Returns all of the authors in the public record sorted in alphabetical order
-func AllAuthorsHandler(db *ahimsadb.PublicRecord) func(http.ResponseWriter, *http.Request) {
+func AllAuthorsHandler(db *pubrecdb.PublicRecord) func(http.ResponseWriter, *http.Request) {
 	return func(w http.ResponseWriter, request *http.Request) {
 
 		authors, err := db.GetAllAuthors()
@@ -174,7 +174,7 @@ func AllAuthorsHandler(db *ahimsadb.PublicRecord) func(http.ResponseWriter, *htt
 }
 
 // Returns all of the bulletins seen within the last 6 blocks.
-func RecentHandler(db *ahimsadb.PublicRecord) func(http.ResponseWriter, *http.Request) {
+func RecentHandler(db *pubrecdb.PublicRecord) func(http.ResponseWriter, *http.Request) {
 	return func(w http.ResponseWriter, request *http.Request) {
 
 		bltns, err := db.GetRecentConf(6)
@@ -188,7 +188,7 @@ func RecentHandler(db *ahimsadb.PublicRecord) func(http.ResponseWriter, *http.Re
 }
 
 // Returns all of the unconfirmed bulletins ordered by reported time.
-func UnconfirmedHandler(db *ahimsadb.PublicRecord) func(http.ResponseWriter, *http.Request) {
+func UnconfirmedHandler(db *pubrecdb.PublicRecord) func(http.ResponseWriter, *http.Request) {
 	return func(w http.ResponseWriter, request *http.Request) {
 
 		bltns, err := db.GetUnconfirmed()
@@ -202,7 +202,7 @@ func UnconfirmedHandler(db *ahimsadb.PublicRecord) func(http.ResponseWriter, *ht
 }
 
 // Returns all of the block summaries for a given day.
-func BlockDayHandler(db *ahimsadb.PublicRecord) func(http.ResponseWriter, *http.Request) {
+func BlockDayHandler(db *pubrecdb.PublicRecord) func(http.ResponseWriter, *http.Request) {
 	return func(w http.ResponseWriter, request *http.Request) {
 
 		datestr := mux.Vars(request)["day"]
@@ -229,10 +229,10 @@ func BlockDayHandler(db *ahimsadb.PublicRecord) func(http.ResponseWriter, *http.
 	}
 }
 
-// Handles the round trip to ahimsadb to get DB status. In the future
+// Handles the round trip to pubrecdb to get DB status. In the future
 // this could look up the status of other processes that are running
 // on the machine and report their status as well.
-func StatusHandler(db *ahimsadb.PublicRecord) func(http.ResponseWriter, *http.Request) {
+func StatusHandler(db *pubrecdb.PublicRecord) func(http.ResponseWriter, *http.Request) {
 	return func(w http.ResponseWriter, request *http.Request) {
 
 		latestBlk, latestBltn, err := db.LatestBlkAndBltn()
@@ -241,8 +241,8 @@ func StatusHandler(db *ahimsadb.PublicRecord) func(http.ResponseWriter, *http.Re
 			return
 		}
 
-		status := &ahimsajson.Status{
-			Version:    ahimsa.Version,
+		status := &ombjson.Status{
+			Version:    ombproto.Version,
 			AppStart:   processStart.Unix(),
 			LatestBlk:  latestBlk,
 			LatestBltn: latestBltn,
@@ -254,7 +254,7 @@ func StatusHandler(db *ahimsadb.PublicRecord) func(http.ResponseWriter, *http.Re
 
 // returns the http handler initialized with the api's routes. The prefix should
 // start and end with slashes. For example /api/ is a good prefix.
-func Handler(prefix string, db *ahimsadb.PublicRecord) http.Handler {
+func Handler(prefix string, db *pubrecdb.PublicRecord) http.Handler {
 
 	r := mux.NewRouter()
 	sha2re := "([a-f]|[A-F]|[0-9]){64}"

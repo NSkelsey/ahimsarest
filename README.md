@@ -4,7 +4,6 @@ ahimsarest
 
 A RESTful API that exposes bulletins stored in a blockchain. 
 This is done through an intermediate sqlite database.
-For the API to work in realtime a daemon like [ahimsad](https://github.com/NSkelsey/ahimsad) must be populating that database.
+For the API to work in realtime a daemon like [ombfullnode](https://github.com/soapboxsys/ombfullnode) must be populating that database.
 Your mileage may vary.
 
-Documentation can be found [here]().

@@ -5,13 +5,13 @@ import (
 	"net/http"
 	"net/http/httptest"
 
-	"testing"
+	"github.com/soapboxsys/ombudslib/pubrecdb"
 
-	"github.com/NSkelsey/ahimsadb"
+	"testing"
 )
 
 func newTestServer(t *testing.T) *httptest.Server {
-	db, err := ahimsadb.SetupTestDB()
+	db, err := pubrecdb.SetupTestDB()
 	if err != nil {
 		t.Fatal(err)
 	}
