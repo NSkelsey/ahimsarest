@@ -3,14 +3,16 @@ package main
 import (
 	"log"
 	"net/http"
+	"path/filepath"
 
 	"github.com/NSkelsey/ahimsarest"
+	"github.com/btcsuite/btcutil"
 	"github.com/soapboxsys/ombudslib/pubrecdb"
 )
 
 func main() {
 
-	dbpath := "/home/ubuntu/.ombfullnode/pubrecord.db"
+	dbpath := filepath.Join(btcutil.AppDataDir("ombfullnode", false), "pubrecord.db")
 
 	var err error
 	db, err := pubrecdb.LoadDB(dbpath)
