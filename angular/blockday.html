@@ -1,0 +1,7 @@
+<ng-include src="views/blocks/filter.html"></ng-include>
+
+<div>Blocks published on {{ day | nicedate }}</div>
+
+<div ng-repeat="block in blocks" class="block"></div>
+
+<ng-include src="help.html"></ng-include>

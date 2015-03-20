@@ -1,0 +1,5 @@
+<p>Block: <a href="#/block/{{ block.hash }}">{{ block.height }}</a></p>
+<p>
+    <small>NumBltns: {{ block.numbltns || 0 }}</small>
+    <small>Timestamp: {{ block.timestamp | precisedate }}</small>
+</p>

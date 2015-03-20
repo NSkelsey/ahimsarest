@@ -1,0 +1,9 @@
+<div>
+    <p>{{ bltn.msg }}</p>
+    <small>By: <a href="#/author/{{ bltn.author }}">{{ bltn.author }}</a> 
+        
+        <a ng-if="bltn.bannedReason === undefined" href="#/bulletin/{{ bltn.txid }}">Full Text</a>
+        <a ng-if="bltn.bannedReason !== undefined" href="#/blacklist/{{ bltn.txid }}">Banned Reason</a>
+    
+    </small>
+</div>

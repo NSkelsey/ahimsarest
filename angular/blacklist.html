@@ -1,0 +1,5 @@
+<div>BlackList</div>
+
+<div ng-repeat="entry in blacklist">
+    <p ng-class="entry.txid === active ? 'active' : 'inactive'">{{ entry.txid }} -- {{ entry.reason }} </p>
+</div>
