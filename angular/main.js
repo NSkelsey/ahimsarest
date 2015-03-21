@@ -63,6 +63,7 @@ angular.module('ahimsaApp', [
                 return $http.get('/api/boards')
             },
             'getBoard': function(urlname) {
+                // Use the encode function to prevent user submitted data from doing funky stuff with the url.
                 return $http.get('/api/board/' + encodeURIComponent(urlname))
             },
             'getNilBoard': function() {
@@ -162,6 +163,8 @@ angular.module('ahimsaApp', [
     .directive('bulletin', function() {
         return {
             templateUrl: 'bltn.html',
+            // the restrict tag means that only html elements that have the class "bulletin"
+            // end up with the bltn.html template rendered below them.
             restrict: 'C',
         }
     })

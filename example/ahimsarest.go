@@ -20,7 +20,7 @@ func main() {
 		log.Fatal(err)
 	}
 
-	http.Handle("/", ahimsarest.Handler("", db))
+	http.Handle("/", ahimsarest.Handler("/", db))
 	host := "0.0.0.0:1054"
 	log.Printf("web-api listening at %s.\n", host)
 	http.ListenAndServe(host, nil)
