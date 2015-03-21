@@ -13,7 +13,7 @@ import (
 
 var (
 	host       = flag.String("host", "localhost:1055", "The ip and port for the server to listen on")
-	staticpath = flag.String("statpath", "./", "The path to the static files to serve")
+	staticpath = flag.String("staticpath", "./", "The path to the static files to serve")
 )
 
 func main() {
