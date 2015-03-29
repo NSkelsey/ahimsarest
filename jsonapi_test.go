@@ -43,7 +43,7 @@ var statusCodeTests = []struct {
 		404,
 	},
 	{"/blacklist", 200},
-	{"/author/0000000000000000000000000000000000", 404},
+	{"/author/0000000000000000000000000000000000", 204},
 	{"/board/this-One-Isnt-Real", 404},
 	// Ensure that a utf-8 url-encoded board is reachable
 	{"/board/%23%21~%2AEnc%20ded-bo%C3%84&%5C/%D3%81", 200},
