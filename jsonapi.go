@@ -71,7 +71,8 @@ func BlockHandler(db *pubrecdb.PublicRecord) func(http.ResponseWriter, *http.Req
 	}
 }
 
-// Handles a request for information about an individual author
+// Handles a request for information about an individual author. This does not
+// validate the provided address.
 func AuthorHandler(db *pubrecdb.PublicRecord) func(http.ResponseWriter, *http.Request) {
 	return func(w http.ResponseWriter, request *http.Request) {
 
@@ -79,7 +80,7 @@ func AuthorHandler(db *pubrecdb.PublicRecord) func(http.ResponseWriter, *http.Re
 
 		authorJson, err := db.GetJsonAuthor(addr)
 		if err == sql.ErrNoRows {
-			http.Error(w, "Author does not exist", 404)
+			http.Error(w, "Author does not exist", 204)
 			return
 		}
 		if err != nil {
