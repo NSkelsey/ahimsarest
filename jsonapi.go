@@ -71,6 +71,26 @@ func BlockHandler(db *pubrecdb.PublicRecord) func(http.ResponseWriter, *http.Req
 	}
 }
 
+// Handles requests for individual Blocks
+func BlockHeadHandler(db *pubrecdb.PublicRecord) func(http.ResponseWriter, *http.Request) {
+	return func(w http.ResponseWriter, request *http.Request) {
+
+		hash, _ := mux.Vars(request)["hash"]
+
+		blockH, err := db.GetJsonBlockHead(hash)
+		if err == sql.ErrNoRows {
+			http.Error(w, err.Error(), 404)
+			return
+		}
+		if err != nil {
+			http.Error(w, err.Error(), 500)
+			return
+		}
+
+		writeJson(w, blockH)
+	}
+}
+
 // Handles a request for information about an individual author. This does not
 // validate the provided address.
 func AuthorHandler(db *pubrecdb.PublicRecord) func(http.ResponseWriter, *http.Request) {
@@ -272,6 +292,7 @@ func Handler(prefix string, db *pubrecdb.PublicRecord) http.Handler {
 	r.HandleFunc(p+fmt.Sprintf("bulletin/{txid:%s}", sha2re), BulletinHandler(db))
 	r.HandleFunc(p+fmt.Sprintf("author/{addr:%s}", addrgex), AuthorHandler(db))
 	r.HandleFunc(p+fmt.Sprintf("block/{hash:%s}", sha2re), BlockHandler(db))
+	r.HandleFunc(p+fmt.Sprintf("blockhead/{hash:%s}", sha2re), BlockHeadHandler(db))
 	r.HandleFunc(p+fmt.Sprintf("board/{board:%s}", boardre), BoardHandler(db))
 	r.HandleFunc(p+"blacklist", BlacklistHandler(db))
 	r.HandleFunc(p+"nilboard", NilBoardHandler(db))
