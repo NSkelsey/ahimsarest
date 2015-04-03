@@ -1,9 +1,18 @@
 'use strict';
 
+angular.module('exceptionOverride', []).factory('$exceptionHandler', function() {
+    return function(exception, cause) {
+        exception.message += ' (caused by "' + cause + '")';
+        throw exception;
+    };
+})
+
+
 var ombWebApp = angular.module("ombWebApp", [
     'ombWebAppControllers',
     'ombWebAppFilters',
     'ombWebAppFactory',
+    'exceptionOverride',
     'ngRoute',
     ])
     .config(["$routeProvider", function($routeProvider) {
@@ -15,6 +24,11 @@ var ombWebApp = angular.module("ombWebApp", [
         controller: 'board',
         templateUrl: 'board.html'
       })
+      .when('/nilboard', {
+        controller: 'nilboard',
+        templateUrl: 'board.html'
+      })
+
     }])
     // Directives
     .directive('browseBoard', function() {
@@ -25,9 +39,10 @@ var ombWebApp = angular.module("ombWebApp", [
             restrict: 'C',
         }
     })
-    .directive('pinnedBulletin', function() {
+    .directive('pinBulletin', function() {
         return {
             templateUrl: 'pinned-bulletin.html', 
-            //restrict: 'C',
+            restrict: 'C',
         }
     })
+

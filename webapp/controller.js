@@ -2,8 +2,13 @@ var ctrls = angular.module('ombWebAppControllers', []);
 
 ctrls.controller('board', function($scope, $routeParams, ahimsaRestService) {
       ahimsaRestService.getBoard($routeParams.board).then(function(result) {
-          initBoardSum(result.data.summary);
-          angular.forEach(result.data.bltns, initBulletin);
+          var board = result.data;
+          $scope.board = board;
+  });
+})
+
+ctrls.controller('nilboard', function($scope, ahimsaRestService) {
+      ahimsaRestService.getNilBoard().then(function(result) {
           $scope.board = result.data;
   });
 })
@@ -15,8 +20,29 @@ ctrls.controller('welcome', function($scope) {
 ctrls.controller('browseCtrl', function($scope, $location, $routeParams, ahimsaRestService) {
     ahimsaRestService.getAllBoards().then(function(result) {
         $scope.boards = angular.forEach(result.data, initBoardSum);
+        var gex = /^\/board\/(.*)/
+
+        var viewing = null;
+        
+        var nameL = $location.path().match(gex)
+        if (nameL != null  && nameL.length > 0) {
+            viewing = nameL[0];
+        }
         $scope.openBoard = function(name) {
-           $location.path("/board/" + name) 
+            viewing = name;
+            if (name === "") {
+                $location.path("/nilboard");
+            } else {
+                console.log("This is my path:", $location)
+                $location.path("/board/" + name);
+            }
+        }
+        $scope.isOpen = function(name) {
+            if (viewing === name) {
+                return true;
+            } else {
+                return false;
+            }
         }
     });
 })
@@ -25,33 +51,5 @@ ctrls.controller('browseCtrl', function($scope, $location, $routeParams, ahimsaR
 // Takes in a board and adds processed fields
 function initBoardSum(board) {
     board.urlName = encodeURIComponent(board.name);
-    board.lastActiveDate = simpleDate(board.lastActive);
-    board.createdAtDateTime = simpleDateTime(board.createdAt);
     return board;
-}
-
-function initBulletin(bltn) {
-    bltn.timestampDateTime = simpleDateTime(bltn.timestamp);
-}
-
-function simpleDate(utcsecs) {
-    var d = new Date(utcsecs*1000); 
-    var options = { year: '2-digit', month: '2-digit', day: '2-digit' }
-    return d.toLocaleDateString('en-US', options)
-}
-
-var options = { 
-    year: '2-digit',
-    month: '2-digit',
-    day: '2-digit',
-    hour: 'numeric',  
-    minute: 'numeric',
-    timeZone: 'UTC',
-};
-
-var formater = new Intl.DateTimeFormat('en-US', options);
-
-function simpleDateTime(utcsecs) {
-    var d = new Date(utcsecs*1000); 
-    return formater.format(d);
 }

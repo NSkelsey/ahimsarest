@@ -8,8 +8,7 @@
     <body>
         <div id="container">
             <div id="BrowsePane" ng-controller="browseCtrl">
-                    <div class="browseBoard" ng-repeat="board in boards">
-                    </div>
+                <div class="browseBoard" ng-repeat="board in boards track by board.name"></div>
             </div>
 
             <div id="ContentPane">
@@ -20,8 +19,17 @@
         <!-- In production use: 
         <script src="//ajax.googleapis.com/ajax/libs/angularjs/x.x.x/angular.min.js"></script>
         -->
+        <script>
+        window.onerror = function(error, line, url) {
+            document.write("<h3>Error!</h3>")
+            document.write("<p><code>", error, "</code></p>")
+            document.write("<p><code>", line, "</code></p>")
+            document.write("<p><code>", url, "</code></p>")
+        };
+        </script>
         <script src="/vendor/angular/angular.js"></script>
         <script src="/vendor/angular/angular-route.js"></script>
+        <script src="/static/lib/md5.js"></script>
         <script src="/factory.js"></script>
         <script src="/controller.js"></script>
         <script src="/filter.js"></script>

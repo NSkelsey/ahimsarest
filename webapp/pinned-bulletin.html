@@ -1,7 +1,25 @@
 <div class="pinnedBulletin card">
     <div class="topline">
-        <div class="author">{{ bltn.author | limitTo:14 }}</div> 
-        <div class="timestamp">{{ bltn.timestampDate  }}</div>
+        <div class="authorbox">
+            <svg class="author-icon" 
+                width="15"
+                height="15"
+                >
+                <rect x="0" y="0" 
+                    rx="2" ry="2" 
+                    width="15" height="15" 
+                    fill="{{ bltn.author | authColor }}"
+                    >
+                </rect>
+            </svg>
+            <div class="text">
+                From 
+                <div class="author">
+                    {{ bltn.author | limitTo:10 }}
+                </div>
+            </div>
+        </div> 
+        <div class="timestamp">{{ bltn.timestamp | nicedatetime  }}</div>
         <div class="interact"><img class="setting" src="/static/setting.png" /></div>
     </div>
     <div class="msg">

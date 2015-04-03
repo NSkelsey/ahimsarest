@@ -10,6 +10,9 @@ angular.module('ombWebAppFactory', []).factory('ahimsaRestService', function($ht
     // Use the encode function to prevent user submitted data from doing funky stuff with the url.
       return $http.get('/api/board/' + encodeURIComponent(urlname))
     },
+    'getNilBoard': function() {
+      return $http.get('/api/nilboard')
+    },
  }
 });
 

@@ -8,12 +8,10 @@
         <div class="meta">
             {{ board.summary.numBltns | plural:"Bulletins" }}
             <div class="mine">
-                First bulletin mined at {{ board.summary.createdAtDateTime }}
+                First bulletin mined at {{ board.summary.createdAt | nicedatetime }}
             </div>
         </div>
     </div>
 
-    <div ng-repeat="bltn in board.bltns" pinned-bulletin>
-        yaya
-    </div>
+    <div ng-repeat="bltn in board.bltns | orderBy:'timestamp' track by bltn.txid" class="pinBulletin"></div>
 </div>
