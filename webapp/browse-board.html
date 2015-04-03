@@ -1,0 +1,6 @@
+<div class="content" ng-click="openBoard( board.name );">
+    <div class="title board">{{ board.name | limitTo:26 }}</div>
+    <div class="date">{{ board.lastActiveDate }}</div>
+    <div class="numline">{{ board.numBltns | plural:'Bulletins' }}</div>
+    <div>The length of the returned array or string. If the limit number is positive, limit number of </div>
+</div>

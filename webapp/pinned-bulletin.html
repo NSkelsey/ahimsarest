@@ -1,0 +1,10 @@
+<div class="pinnedBulletin card">
+    <div class="topline">
+        <div class="author">{{ bltn.author | limitTo:14 }}</div> 
+        <div class="timestamp">{{ bltn.timestampDate  }}</div>
+        <div class="interact"><img class="setting" src="/static/setting.png" /></div>
+    </div>
+    <div class="msg">
+        {{ bltn.msg }}
+    </div>
+</div>

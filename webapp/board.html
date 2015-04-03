@@ -1,0 +1,19 @@
+<div class="boardDisplay">
+    <div class="boardline card">
+        <div class="topline">
+            <div class="name board">{{ board.summary.name }}</div> 
+            <img class="setting" src="/static/setting.png" />
+        </div>
+    
+        <div class="meta">
+            {{ board.summary.numBltns | plural:"Bulletins" }}
+            <div class="mine">
+                First bulletin mined at {{ board.summary.createdAtDateTime }}
+            </div>
+        </div>
+    </div>
+
+    <div ng-repeat="bltn in board.bltns" pinned-bulletin>
+        yaya
+    </div>
+</div>

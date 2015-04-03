@@ -67,28 +67,66 @@ body {
 
 
 div.boardDisplay {
-    background-color: #F4F0ED;
-    margin: 10px 17px 0 30px;
+    margin: 20px 30px 0 40px;
+}
+
+div.card {
+    box-shadow: 0px 1px 3px rgba(0, 0, 0, 0.6);
+    background-color: white;
+    padding: 15px 15px 20px 15px; 
+}
+
+div.boardDisplay div.boardline {
+    margin-bottom: 40px
+}
+
+div.boardline .name {
+    font-size: 1.3em;
+    display: inline-block;
+    margin-bottom: 7px;
+
+}
+
+div.boardline .setting {
+    float: right;
+    height: 30px;
+    width: 30px;
+}
+
+div.boardline .meta .mine {
+    float: right;
 }
 
 div.pinnedBulletin {
-    width: 100%;
     min-height: 170px;
-    margin: 0 0 30px 0;
-    background-color: white;
-    box-shadow: 0px 1px 3px rgba(0, 0, 0, 0.6);
-    padding: 10px;
+    margin-bottom: 40px;
 }
 
 .pinnedBulletin .msg {
    word-wrap: break-word;
 }
 
-.pinnedBulletin .board-line {
+.pinnedBulletin .topline div {
+    display: inline-block;
 }
 
+.pinnedBulletin .author {
+    float: left;
+}
 
+.pinnedBulletin .interact {
+    float: right;
+}
 
+.pinnedBulletin .timestamp {
+    margin: 0 auto;
+    width: 100%;
+}
+
+.pinnedBulletin .setting {
+    height: 25px;
+    width: 25px;
+}
 
 ::-webkit-scrollbar {
     width:9px;
