@@ -108,7 +108,8 @@ div.boardline .name {
 
 div.boardline .setting {
     float: right;
-    height: 30px;
+    margin-right: 2px;
+    height: 25px;
 }
 
 div.boardline .meta .mine {
@@ -166,10 +167,22 @@ div.pinnedBulletin {
 }
 
 .pinnedBulletin .setting {
-    height: 24px;
+    height: 25px;
     position:absolute; 
     bottom: 6px;
-    right: 0px;
+    right: 60px;
+}
+.pinnedBulletin .slider {
+    height: 25px;
+    position:absolute; 
+    bottom: 5px;
+    right: 30px;
+}
+.pinnedBulletin .confs {
+    height: 22px;
+    position:absolute; 
+    bottom: 6px;
+    right: 3px;
 }
 
 ::-webkit-scrollbar {

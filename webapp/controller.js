@@ -5,7 +5,27 @@ ctrls.controller('board', function($scope, $routeParams, ahimsaRestService) {
           var board = result.data;
           $scope.board = board;
   });
-})
+
+    var base = "/static/images/"
+    $scope.depthImg = function(bltn) {
+        var curHeight = ahimsaRestService.getBlockHeight();
+        
+        if (!angular.isDefined(bltn.blk)) {
+            // The bltn is not mined
+            return base + "0conf.png"       
+        } else {
+            // The bltn is in some block
+            var diff = curHeight - bltn.blkHeight;
+
+            if (diff > 3) {
+                // The bltn is somewhere in the chain
+                return base + "totalconf.png"
+            }
+            // The bltn is less than 5 blocks deep
+            return base + (diff + 1) + "conf.png"
+        }
+    }
+});
 
 ctrls.controller('nilboard', function($scope, ahimsaRestService) {
       ahimsaRestService.getNilBoard().then(function(result) {
@@ -25,8 +45,8 @@ ctrls.controller('browseCtrl', function($scope, $location, $routeParams, ahimsaR
         var viewing = null;
         
         var nameL = $location.path().match(gex)
-        if (nameL != null  && nameL.length > 0) {
-            viewing = nameL[0];
+        if (nameL != null  && nameL.length > 1) {
+            viewing = nameL[1];
         }
         $scope.openBoard = function(name) {
             viewing = name;

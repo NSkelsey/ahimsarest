@@ -45,4 +45,3 @@ var ombWebApp = angular.module("ombWebApp", [
             restrict: 'C',
         }
     })
-

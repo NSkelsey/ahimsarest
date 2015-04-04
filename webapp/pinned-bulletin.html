@@ -20,7 +20,10 @@
             </div>
         </div> 
         <div class="timestamp">{{ bltn.timestamp | nicedatetime  }}</div>
-        <div class="interact"><img class="setting" src="/static/setting.png" /></div>
+        <div class="interact">
+            <img class="slider" src="/static/images/slider.png" />
+            <img class="confs" src="{{ depthImg(bltn) }}" />
+        </div>
     </div>
     <div class="msg">
         {{ bltn.msg }}
