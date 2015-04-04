@@ -8,7 +8,6 @@ import (
 	"time"
 
 	"github.com/gorilla/mux"
-	"github.com/soapboxsys/ombudslib/ombjson"
 	"github.com/soapboxsys/ombudslib/protocol/ombproto"
 	"github.com/soapboxsys/ombudslib/pubrecdb"
 )
@@ -256,18 +255,13 @@ func BlockDayHandler(db *pubrecdb.PublicRecord) func(http.ResponseWriter, *http.
 func StatusHandler(db *pubrecdb.PublicRecord) func(http.ResponseWriter, *http.Request) {
 	return func(w http.ResponseWriter, request *http.Request) {
 
-		latestBlk, latestBltn, err := db.LatestBlkAndBltn()
+		status, err := db.GetDBStatus()
 		if err != nil {
 			http.Error(w, err.Error(), 500)
 			return
 		}
 
-		status := &ombjson.Status{
-			Version:    ombproto.Version,
-			AppStart:   processStart.Unix(),
-			LatestBlk:  latestBlk,
-			LatestBltn: latestBltn,
-		}
+		status.Version = ombproto.Version
 
 		writeJson(w, status)
 	}
