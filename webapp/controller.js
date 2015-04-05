@@ -1,14 +1,20 @@
-var ctrls = angular.module('ombWebAppControllers', []);
+var ctrls = angular.module('ombWebAppControllers', ['btford.markdown']);
 
 ctrls.controller('board', function($scope, $routeParams, ahimsaRestService) {
-      ahimsaRestService.getBoard($routeParams.board).then(function(result) {
-          var board = result.data;
-          $scope.board = board;
-  });
+    ahimsaRestService.getBoard($routeParams.board).then(function(result) {
+        var board = result.data;
+        $scope.board = board;
+    });
+
+    $scope.switcheroo = true;
+
+    $scope.id = function(front, bltn) {
+        return front + bltn.txid;
+    }
 
     var base = "/static/images/"
     $scope.depthImg = function(bltn) {
-        var curHeight = ahimsaRestService.getBlockHeight();
+        var curHeight = ahimsaRestService.getBlockCount();
         
         if (!angular.isDefined(bltn.blk)) {
             // The bltn is not mined

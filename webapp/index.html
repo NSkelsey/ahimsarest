@@ -4,11 +4,12 @@
         <meta charset="utf-8">
         <title>OmbWebApp</title>
         <link rel="stylesheet" href="static/main.css"/>
+        <link rel="stylesheet" href="static/toggle.css"/>
     </head>
     <body>
         <div id="container">
             <div id="BrowsePane" ng-controller="browseCtrl">
-                <div class="browseBoard" ng-repeat="board in boards track by board.name"></div>
+                <div class="browseBoard" ng-repeat="board in boards | orderBy:'-lastActive'"></div>
             </div>
 
             <div id="ContentPane">
@@ -29,6 +30,9 @@
         </script>
         <script src="/vendor/angular/angular.js"></script>
         <script src="/vendor/angular/angular-route.js"></script>
+        <script src="/static/lib/angular-sanitize.js"></script>
+        <script src="/static/lib/showdown.js"></script>
+        <script src="/static/lib/markdown.js"></script>
         <script src="/static/lib/md5.js"></script>
         <script src="/factory.js"></script>
         <script src="/controller.js"></script>

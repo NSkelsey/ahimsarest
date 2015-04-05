@@ -7,7 +7,6 @@ angular.module('ombWebAppFactory', []).factory('ahimsaRestService', function($ht
   function updateService() { 
       $http.get('/api/status').then(function(result) {
           serverInfo = result.data;
-          debugger;
       });
   }
 
@@ -27,8 +26,8 @@ angular.module('ombWebAppFactory', []).factory('ahimsaRestService', function($ht
     'getNilBoard': function() {
       return $http.get('/api/nilboard')
     },
-    'getBlockHeight': function() {
-        return serverInfo.blkHeight;
+    'getBlockCount': function() {
+        return serverInfo.blkCount;
     },
  }
 })
